@@ -1,9 +1,12 @@
+import javafx.stage.Screen;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.Line2D;
 
 public class Gui extends JFrame
 {
+    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
     /*
     * getGraphics will return null in the constructor as the component
@@ -36,72 +39,50 @@ public class Gui extends JFrame
     //selezione rolli tramite jdialog
     public Gui()
     {
-
-
         super(GUI_NAME);
 
-        //this.setLayout(null);
-        this.setLayout(new GridBagLayout());
+        setSize(screenSize.width, screenSize.height); // set the screen size
+        this.setExtendedState(JFrame.MAXIMIZED_BOTH); // Set full screen.
+        // (do not actually update the frame size until after the constructor)
+        //System.out.println("! " + getHeight() + "   " + getHeight());
+
         c = getContentPane();
 
-        JButton debug = new JButton("debug");
-        debug.setBounds(0, 300, 500, 400);
 
-        c.add(debug);
-
-        //mainPanel = new JPanel();
-        //mainPanel.setLayout(null);
+        //this.setLayout(null);
+        c.setLayout(null);
+        c = getContentPane();
 
         jPanelChat = new JPanel();
-        //jPanelChat.setLayout(null);
-        jPanelChat.setBounds(0 , getHeight() * 2 / 3 , getWidth() * 2 /3 , getHeight() * 2 / 3);
-
-        this.add(jPanelChat);
+        jPanelChat.setLayout(null);
+        jPanelChat.setBounds(0 , 0 , getWidth() /2 , getHeight() * 2 / 3);
+        jPanelChat.setBackground(Color.BLUE);
+        jPanelChat.setOpaque(true);
+        jPanelChat.setVisible(true);
 
         textArea = new TextArea();
         textArea.setBounds(0,0,100,100);
         textArea.enableInputMethods(false);
 
         jScrollPane = new JScrollPane (textArea);
+        jScrollPane.setBounds(0, 50, 70, 80);
         jPanelChat.add(jScrollPane);
-
-        GridBagConstraints gridBagConstraints = new GridBagConstraints();
-
-        gridBagConstraints.fill = GridBagConstraints.FIRST_LINE_START;
-        gridBagConstraints.weightx = 0.5;
-        gridBagConstraints.gridx = 30;
-        gridBagConstraints.gridy = 30;
-
-        this.add(jPanelChat, gridBagConstraints);
-
-        JButton debugMeglio = new JButton("debugMeglio");
-        debugMeglio.setBounds(0,0, 20, 30);
-
-        c.add(debugMeglio);
+        c.add(jPanelChat);
 
 
 
         rollersSelectionWindow = new RollersSelectionDialog(this);
 
-        this.setResizable(false);
-        this.setExtendedState(JFrame.MAXIMIZED_BOTH); // Set full screen.
+
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
-
-        /*
-      c.weightx = 0.5;
-}
-c.fill = GridBagConstraints.HORIZONTAL;
-c.gridx = 0;
-c.gridy = 0;
-pane.add(button, c);
-        */
-
+        //this.setResizable(false); // do not let you re put it full screen
         this.setVisible(true);
     }
 
 
     public void paint(Graphics g)
     {
+        super.paint(g);
         Graphics2D g2d = (Graphics2D) g;
 
         int centerX = getWidth() / 2; // get the center of the window.
@@ -110,8 +91,7 @@ pane.add(button, c);
 
         g2d.drawLine(centerX,getHeight() * 2 / 3,  0, getHeight() * 2 / 3);
 
-
-
+        //System.out.println(getHeight() + "   " + getHeight());
     }
 
 }
