@@ -73,6 +73,7 @@ public class Enigma {
 
         for(int i = 0 ; i < selectedRollers.length; i++){
             c = selectedRollers[i].commute(c);
+            //System.out.println("finish to commute " + i +"  "+ c + "   " + (int)c);
         }
 
         c = commutator.commute(c);

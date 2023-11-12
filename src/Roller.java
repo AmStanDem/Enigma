@@ -46,12 +46,10 @@ public class Roller extends Commutator
 
     }
 
-    // TODO: fix the way it handles the currentOffset please (or i will kidnap you while you sleep ;) )
     @Override
     public char commute(char c){
-        System.out.println(currentOffset + "???????");
-        //return (char)(super.commute((char)((c - 'A' + currentOffset) % ALPHABET_LENGTH + 'A')) - currentOffset);
-        return (char) ((super.commute((char) ((c - 'A' + currentOffset) % ALPHABET_LENGTH + 'A')) - currentOffset + ALPHABET_LENGTH) % ALPHABET_LENGTH);
+        //System.out.println(currentOffset + "???????   " + (int)c);
+        char result = super.commute( (char) ( (c - 'A' + currentOffset) % ALPHABET_LENGTH + 'A') );
+        return (char) ((result - currentOffset + ALPHABET_LENGTH - 'A') % ALPHABET_LENGTH + 'A');
     }
-// TODO: Ok ragazzi io vado, a domani (° \__/ °)
 }

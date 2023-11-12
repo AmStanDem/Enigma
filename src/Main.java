@@ -5,13 +5,6 @@ public class Main
 {
     public static void main(String[] args)
     {
-        Enigma e = new Enigma();
-        /*
-        System.out.println(e.pushKey('E'));
-        System.out.println(e.pushKey('E'));
-        */
-
-        System.out.println(e.pushKey('F'));
 
 
         SwingUtilities.invokeLater(new Runnable()
@@ -26,5 +19,12 @@ public class Main
                 }
             }
         });
+
+        Enigma e = new Enigma();
+        String s = "ciaoilsleesplendenteequantosorridiloeunpomenoperchefaischifostupidociaoilsleesplendenteequantosorridiloeunpomenoperchefaischifostupidociaoilsleesplendenteequantosorridiloeunpomenoperchefaischifostupido";
+        //s = "KVIJQSLROJAUEGUMVCERZJXKQDDHVLIUWLMFZYMNLOWSJXDXRXNQUSVMCSGIYXRRGXKUKBUNTYBTSLXQIUHLRYYVOXKCNQOZEYEQXZHVFLOCVDWEWPKPDDVITCMZKWSBMRFNBWMHLJOSEDFZRXOHTCTFHSTULGQHHHRIFHXQCQNOWXMSHBEQJPIYREKVDJBZMIJZAAVEI";
+        s = s.toUpperCase();
+        System.out.println(e.writeMsg(s));
+
     }
 }
