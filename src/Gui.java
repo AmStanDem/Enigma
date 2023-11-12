@@ -9,8 +9,7 @@ import java.io.*;
 import java.net.Socket;
 import java.util.Vector;
 
-public class Gui extends JFrame implements ActionListener
-{
+public class Gui extends JFrame implements ChangeListener {
     public static int PORT = 60000;
     public static final String GUI_NAME = "Enigma machine";
 
@@ -52,7 +51,7 @@ public class Gui extends JFrame implements ActionListener
 
     private Vector<TextArea> textAreaVector;
 
-    private TextArea textArea;
+    private JTextArea textArea;
 
     private JScrollPane jScrollPane;
 
@@ -60,9 +59,8 @@ public class Gui extends JFrame implements ActionListener
 
     private Container c;
 
-    //private JButton [] btnsKeyboard;
-
-    private RoundButton [] btnsKeyboard;
+    private RoundButton[] btnsKeyboard;
+    private RoundButton lastPressedKeyboardButton;
 
     private RoundLabel[] labelsLights;
 
@@ -109,8 +107,8 @@ public class Gui extends JFrame implements ActionListener
         jPanelChat.setOpaque(true);
         jPanelChat.setVisible(true);
 
-        textArea = new TextArea();
-        textArea.setBounds(0,0,100,100);
+        textArea = new JTextArea();
+        textArea.setBounds(0, 0, 100, 100);
         textArea.enableInputMethods(false);
 
         jScrollPane = new JScrollPane(textArea);
@@ -133,7 +131,7 @@ public class Gui extends JFrame implements ActionListener
         labelsLights = new RoundLabel[ALPHABET_LENGTH];
 
 
-
+        lastPressedKeyboardButton = null;
         int startX = (jPanelButtonskeyBoard.getWidth() / 2) -
                 ((9 * KEYBOARD_BUTTONS_SIZE + 8 * KEYBOARD_BUTTONS_HORIZONTAL_SPACE) / 2);
         int keyboardStartY = 20;
@@ -144,14 +142,14 @@ public class Gui extends JFrame implements ActionListener
             btnsKeyboard[i].setBackground(KEYBOARD_NON_PRESSED_BUTTON);
             btnsKeyboard[i].serBorderColor(KEYBOARD_BORDER);
             btnsKeyboard[i].setActionCommand(ACTION_COMMAND_KEYBOARD_BUTTONS);
-            btnsKeyboard[i].addActionListener(this);
+            btnsKeyboard[i].addChangeListener(this);
             btnsKeyboard[i].setSize(KEYBOARD_BUTTONS_SIZE, KEYBOARD_BUTTONS_SIZE);
 
             labelsLights[i] = new RoundLabel(String.valueOf(ENIGMA_ALPHABET.charAt(i)));
             labelsLights[i].setFocusable(false);
             labelsLights[i].setEnabled(false);
             labelsLights[i].setHorizontalAlignment(SwingConstants.CENTER);
-            labelsLights[i].setBackground(LIGHTS_ON);
+            labelsLights[i].setBackground(LIGHTS_OFF);
             labelsLights[i].serBorderColor(LIGHTS_BORDER);
             labelsLights[i].setSize(KEYBOARD_BUTTONS_SIZE, KEYBOARD_BUTTONS_SIZE);
 
@@ -261,28 +259,36 @@ public class Gui extends JFrame implements ActionListener
     }
 
     @Override
-    public void actionPerformed(ActionEvent e)
-    {
-        Object source = e.getSource();
+    public void stateChanged(ChangeEvent e) {
+        RoundButton source = (RoundButton) e.getSource();
 
-        if(e.getActionCommand().equals(ACTION_COMMAND_KEYBOARD_BUTTONS))
-        {
-            RoundButton buttonPressed = (RoundButton) source;
-            char letter = buttonPressed.getText().charAt(0);
-            plainText = plainText + letter;
+        if ((lastPressedKeyboardButton == null || lastPressedKeyboardButton != source) && source.getModel().isPressed()) {
+            lastPressedKeyboardButton = source;
+
+            char originalLetter = source.getText().charAt(0);
+            plainText = plainText + originalLetter;
 
             //System.out.println((int)letter + "!");// debug
 
-            char encryptedLetter = enigma.pushKey(letter);
+            char encryptedLetter = enigma.pushKey(originalLetter);
 
-            plainText = plainText + letter;
+            plainText = plainText + originalLetter;
             encryptedText = encryptedText + encryptedLetter;
 
-            System.out.println(letter + " -> " + encryptedLetter);// debug
-
-
+            //System.out.println(letter + " -> " + encryptedLetter);// debug
+            textFieldMsgOriginal.setText(textFieldMsgOriginal.getText() + originalLetter);
+            textFieldMsgEncrypted.setText(textFieldMsgEncrypted.getText() + encryptedLetter);
         }
 
-        updateGraphic();
+        if (!textFieldMsgEncrypted.getText().isEmpty()) {
+            int selectedLetterIndex = ENIGMA_ALPHABET.indexOf(textFieldMsgEncrypted.getText().charAt(textFieldMsgEncrypted.getText().length() - 1));
+            if (source.getModel().isPressed()) {
+                labelsLights[selectedLetterIndex].setBackground(LIGHTS_ON);
+            } else {
+                lastPressedKeyboardButton = null;
+                labelsLights[selectedLetterIndex].setBackground(LIGHTS_OFF);
+            }
+        }
     }
 }
+

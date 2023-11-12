@@ -5,9 +5,34 @@ public class Enigma {
     private Roller[] availableRollers;
     private Roller[] selectedRollers;
     private Commutator commutator;
+    private int [] cabledSwitches;
 
     
     public Enigma() {
+        cabledSwitches = new int[ALPHABET_LENGTH];
+        for(int i = 0 ; i < cabledSwitches.length; i++){
+            cabledSwitches[i] = 0;
+        }
+        /*
+        cabledSwitches[2] = 1;
+        cabledSwitches[5] = 1;
+        cabledSwitches[3] = 2;
+        cabledSwitches[8] = 2;
+        cabledSwitches[9] = 3;
+        cabledSwitches[23] = 3;
+        cabledSwitches[11] = 4;
+        cabledSwitches[12] = 4;
+        cabledSwitches[7] = 5;
+        cabledSwitches[21] = 5;
+        cabledSwitches[0] = 6;
+        cabledSwitches[18] = 6;
+        cabledSwitches[4] = 7;
+        cabledSwitches[19] = 7;
+        cabledSwitches[20] = 8;
+        cabledSwitches[13] = 8;
+         */
+
+
         availableRollers = new Roller[NUM_AVAILABLE_ROLLERS];
         selectedRollers = new Roller[NUM_SELECTABLE_ROLLERS];
 
@@ -19,9 +44,7 @@ public class Enigma {
         availableRollers[3] = new Roller(new int[]{11,2,4,25,7,20,16,9,3,10,6,5,0,8,12,13,14,21,15,17,18,19,22,23,24,1});
         availableRollers[4] = new Roller(new int[]{19,11,2,7,0,4,25,5,8,16,9,3,10,1,24,13,20,14,15,22,17,18,23,12,21,6});
 
-        for(int i = 0 ; i < NUM_SELECTABLE_ROLLERS; i++){
-            selectedRollers[i] = availableRollers[i];
-        }
+        setDefaultConfiguration();
     }
 
     public Roller[] getAvailableRolls(){
@@ -57,15 +80,43 @@ public class Enigma {
     }
 
 
+    public void setDefaultConfiguration(){
+        for(int i = 0 ; i < cabledSwitches.length; i++){
+            cabledSwitches[i] = 0;
+        }
+
+        for(int i = 0 ; i < NUM_SELECTABLE_ROLLERS; i++){
+            selectedRollers[i] = availableRollers[i];
+            selectedRollers[i].setCurrentOffset(0);
+            selectedRollers[i].setAdvancementOffset(0);
+        }
+
+    }
+    private char crossCabledSwitches(char c){
+        int code = cabledSwitches[c - 'A'];
+
+        if(code != 0){
+            for(int i = 0; i < ALPHABET_LENGTH; i++){
+                if(cabledSwitches[i] == code && i != (c - 'A')){
+                    return (char) (i + 'A');
+                }
+            }
+        }
+
+        return c;
+    }
     private void advanceRolls(){
         for(int i = NUM_SELECTABLE_ROLLERS - 1; i > 0 ; i--){
             if(!selectedRollers[i - 1].isBlockingNextRoller()){
                 selectedRollers[i].advance();
             }
+            //System.out.print(selectedRollers[i].getCurrentOffset() + "-");
         }
         selectedRollers[0].advance();
+        //System.out.println(selectedRollers[0].getCurrentOffset());
     }
     private char translate(char c){
+        c = crossCabledSwitches(c);
 
         for(int i = 0 ; i < selectedRollers.length; i++){
             c = selectedRollers[i].commute(c);
@@ -78,6 +129,7 @@ public class Enigma {
             c = selectedRollers[i].commute(c);
         }
 
+        c = crossCabledSwitches(c);
 
         return c;
         //return commutator.commute(c);

@@ -22,10 +22,15 @@ public class Main
 
         /*
         Enigma e = new Enigma();
-        String s = "ciaoilsleesplendenteequantosorridiloeunpomenoperchefaischifostupidociaoilsleesplendenteequantosorridiloeunpomenoperchefaischifostupidociaoilsleesplendenteequantosorridiloeunpomenoperchefaischifostupido";
-        //s = "KVIJQSLROJAUEGUMVCERZJXKQDDHVLIUWLMFZYMNLOWSJXDXRXNQUSVMCSGIYXRRGXKUKBUNTYBTSLXQIUHLRYYVOXKCNQOZEYEQXZHVFLOCVDWEWPKPDDVITCMZKWSBMRFNBWMHLJOSEDFZRXOHTCTFHSTULGQHHHRIFHXQCQNOWXMSHBEQJPIYREKVDJBZMIJZAAVEI";
+        String s = "ciaociao";
         s = s.toUpperCase();
-        System.out.println(e.writeMsg(s));
+        s = e.writeMsg(s);
+        System.out.println("criptaggio:" + s);
+
+        e = new Enigma();
+        s = e.writeMsg(s);
+        System.out.println("decriptaggio:" + s);
+        */
 
     }
 }
