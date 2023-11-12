@@ -1,4 +1,5 @@
 import javax.swing.*;
+import java.io.IOException;
 
 public class Main
 {
@@ -10,7 +11,11 @@ public class Main
             @Override
             public void run()
             {
-                new Gui().setVisible(true);
+                try {
+                    new Gui().setVisible(true);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
             }
         });
     }
