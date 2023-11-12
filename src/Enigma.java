@@ -2,10 +2,6 @@ public class Enigma {
     public static final int ALPHABET_LENGTH = 'Z' - 'A' + 1;
     private static final int NUM_AVAILABLE_ROLLERS = 5;
     private static final int NUM_SELECTABLE_ROLLERS = 3;
-
-
-
-
     private Roller[] availableRollers;
     private Roller[] selectedRollers;
     private Commutator commutator;

@@ -20,6 +20,7 @@ public class Main
             }
         });
 
+        /*
         Enigma e = new Enigma();
         String s = "ciaoilsleesplendenteequantosorridiloeunpomenoperchefaischifostupidociaoilsleesplendenteequantosorridiloeunpomenoperchefaischifostupidociaoilsleesplendenteequantosorridiloeunpomenoperchefaischifostupido";
         //s = "KVIJQSLROJAUEGUMVCERZJXKQDDHVLIUWLMFZYMNLOWSJXDXRXNQUSVMCSGIYXRRGXKUKBUNTYBTSLXQIUHLRYYVOXKCNQOZEYEQXZHVFLOCVDWEWPKPDDVITCMZKWSBMRFNBWMHLJOSEDFZRXOHTCTFHSTULGQHHHRIFHXQCQNOWXMSHBEQJPIYREKVDJBZMIJZAAVEI";
