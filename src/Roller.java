@@ -53,5 +53,5 @@ public class Roller extends Commutator
         //return (char)(super.commute((char)((c - 'A' + currentOffset) % ALPHABET_LENGTH + 'A')) - currentOffset);
         return (char) ((super.commute((char) ((c - 'A' + currentOffset) % ALPHABET_LENGTH + 'A')) - currentOffset + ALPHABET_LENGTH) % ALPHABET_LENGTH);
     }
-
+// TODO: Ok ragazzi io vado, a domani (° \__/ °)
 }

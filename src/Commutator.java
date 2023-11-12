@@ -14,7 +14,7 @@ public class Commutator {
     }
 
     public char commute(char c){
-        return (char)commutations[c - 'A'];
-
+        System.out.println((int) c + "!!!!!!!!");
+        return (char)(commutations[c - 'A'] + 'A');
     }
 }
