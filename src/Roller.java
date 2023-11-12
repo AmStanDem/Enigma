@@ -38,7 +38,7 @@ public class Roller extends Commutator
     }
 
     public void advance(){
-        currentOffset  = (currentOffset + 1) % ('Z' - 'A');
+        currentOffset  = (currentOffset + 1) % ALPHABET_LENGTH;
 
     }
     public boolean isBlockingNextRoller(){
@@ -46,10 +46,12 @@ public class Roller extends Commutator
 
     }
 
+    // TODO: fix the way it handles the currentOffset please (or i will kidnap you while you sleep ;) )
     @Override
     public char commute(char c){
-        return (super.commute((char)((c + currentOffset) % ALPHABET_LENGTH)));
-
+        System.out.println(currentOffset + "???????");
+        //return (char)(super.commute((char)((c - 'A' + currentOffset) % ALPHABET_LENGTH + 'A')) - currentOffset);
+        return (char) ((super.commute((char) ((c - 'A' + currentOffset) % ALPHABET_LENGTH + 'A')) - currentOffset + ALPHABET_LENGTH) % ALPHABET_LENGTH);
     }
 
 }

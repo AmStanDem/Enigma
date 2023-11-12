@@ -10,18 +10,36 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.Vector;
 
-public class Gui extends JFrame
+public class Gui extends JFrame implements ActionListener
 {
-    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-
-    /*
-    * getGraphics will return null in the constructor as the component
-    * will not be visible at the time of creation. For custom painting in Swing override the
-    * paintComponent(g) method instead. There the Graphics handle will always be properly initialized.
-    */
+    public static int PORT = 60000;
     public static final String GUI_NAME = "Enigma machine";
 
+    private static final String ENIGMA_ALPHABET = "QWERTZUIOASDFGHJKPYXCVBNML";
 
+    private static final int ALPHABET_LENGTH = ENIGMA_ALPHABET.length();
+
+    private static final File IMAGE_ICON = new File("assets/images/Enigma_Icon.png");
+
+    private static final int KEYBOARD_BUTTONS_SIZE = 45;
+    private static final int KEYBOARD_BUTTONS_HORIZONTAL_SPACE = 12;
+    private static final int KEYBOARD_BUTTONS_VERTICAL_SPACE = 18;
+
+    private static final String ACTION_COMMAND_KEYBOARD_BUTTONS = "KEYBOARD_BUTTON";
+
+    public static Dimension SCREEN_SIZE = Toolkit.getDefaultToolkit().getScreenSize();
+    public static Color KEYBOARD_NON_PRESSED_BUTTON = new Color(121, 121, 121);
+    public static Color KEYBOARD_PRESSED_BUTTON = new Color(58, 58, 58);
+    public static Color KEYBOARD_BORDER = new Color(35, 35, 35);
+    public static Color LIGHTS_ON = new Color(250, 250, 221);
+    public static Color LIGHTS_OFF = new Color(255, 246, 65);
+    public static Color LIGHTS_BORDER = new Color(255, 247, 31);
+
+
+    private ServerThread t;
+    public Socket cSocket;
+    public BufferedReader input;
+    public PrintWriter output;
 
 
     private JPanel jPanelChat;
@@ -40,9 +58,22 @@ public class Gui extends JFrame
 
     private Container c;
 
-    private Button [] btnsKeyboard;
+    //private JButton [] btnsKeyboard;
 
-    private Button [] btnsLights;
+    private RoundButton [] btnsKeyboard;
+
+    private RoundLabel [] labelsLights;
+
+    private JButton buttonSendMessage;
+
+    private JTextField textFieldMessage;
+
+    private JTextField textFieldIP;
+
+    private JLabel labelConnectionStatus;
+
+    Enigma enigma;
+    String plainText, encryptedText;
 
 
 
@@ -52,13 +83,19 @@ public class Gui extends JFrame
 
         this.setIconImage(ImageIO.read(IMAGE_ICON));
 
-        setSize(screenSize.width, screenSize.height); // set the screen size
+        enigma = new Enigma();
+        plainText = "";
+        encryptedText = "";
+
+
+
+
+        setSize(SCREEN_SIZE.width, SCREEN_SIZE.height); // set the screen size
         this.setExtendedState(JFrame.MAXIMIZED_BOTH); // Set full screen.
         // (do not actually update the frame size until after the constructor)
         //System.out.println("! " + getHeight() + "   " + getHeight());
 
         c = getContentPane();
-
 
         //this.setLayout(null);
         c.setLayout(null);
@@ -152,6 +189,10 @@ public class Gui extends JFrame
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
         //this.setResizable(false); // do not let you re put it full screen
         this.setVisible(true);
+    }
+
+    public void updateGraphic(){
+
     }
 
 
