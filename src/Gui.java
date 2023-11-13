@@ -26,7 +26,7 @@ public class Gui extends JFrame implements ChangeListener {
     private static final String ACTION_COMMAND_KEYBOARD_BUTTONS = "KEYBOARD_BUTTON";
 
     public static final Dimension SCREEN_SIZE = Toolkit.getDefaultToolkit().getScreenSize();
-    public static final Color KEYBOARD_NON_PRESSED_BUTTON = new Color(121, 121, 121);
+    public static final Color KEYBOARD_NON_PRESSED_BUTTON = new Color(110, 110, 110);
     public static final Color KEYBOARD_PRESSED_BUTTON = new Color(58, 58, 58);
     public static final Color KEYBOARD_BORDER = new Color(35, 35, 35);
     public static final Color LIGHTS_OFF = new Color(250, 250, 221);
@@ -139,7 +139,7 @@ public class Gui extends JFrame implements ChangeListener {
         for (int i = 0; i < btnsKeyboard.length; i++) {
             btnsKeyboard[i] = new RoundButton(String.valueOf(ENIGMA_ALPHABET.charAt(i)));
             btnsKeyboard[i].setFocusable(false);
-            btnsKeyboard[i].setBackground(KEYBOARD_NON_PRESSED_BUTTON);
+            btnsKeyboard[i].setForeground(KEYBOARD_NON_PRESSED_BUTTON);
             btnsKeyboard[i].serBorderColor(KEYBOARD_BORDER);
             btnsKeyboard[i].setActionCommand(ACTION_COMMAND_KEYBOARD_BUTTONS);
             btnsKeyboard[i].addChangeListener(this);
@@ -284,9 +284,13 @@ public class Gui extends JFrame implements ChangeListener {
             int selectedLetterIndex = ENIGMA_ALPHABET.indexOf(textFieldMsgEncrypted.getText().charAt(textFieldMsgEncrypted.getText().length() - 1));
             if (source.getModel().isPressed()) {
                 labelsLights[selectedLetterIndex].setBackground(LIGHTS_ON);
+                lastPressedKeyboardButton.setForeground(KEYBOARD_PRESSED_BUTTON);
             } else {
-                lastPressedKeyboardButton = null;
                 labelsLights[selectedLetterIndex].setBackground(LIGHTS_OFF);
+                if(lastPressedKeyboardButton != null){
+                    lastPressedKeyboardButton.setForeground(KEYBOARD_NON_PRESSED_BUTTON);
+                    lastPressedKeyboardButton = null;
+                }
             }
         }
     }
