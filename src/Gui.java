@@ -4,12 +4,14 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
-import java.awt.*;
+import java.awt.*;import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyListener;
 import java.io.*;
 import java.net.Socket;
 import java.util.Vector;
 
-public class Gui extends JFrame implements ChangeListener {
+public class Gui extends JFrame implements ChangeListener, ActionListener {
     public static int PORT = 60000;
     public static final String GUI_NAME = "Enigma machine";
 
@@ -35,6 +37,8 @@ public class Gui extends JFrame implements ChangeListener {
     public static final Color TEXTES_COLOR = new Color(255, 255, 255);
     public static final Color IO_PANEL_COLOR = new Color(192, 192, 192);
     public static final Color MSG_SEND_BUTTON = new Color(18, 243, 8);
+    public static final Color BTN_ENIGMA_CONFIGS = new Color(51, 80, 225);
+    public static final Color BTN_ENIGMA_CONFIGS_MARGIN = new Color(29, 29, 63);
 
 
     private ServerThread t;
@@ -65,8 +69,11 @@ public class Gui extends JFrame implements ChangeListener {
     private RoundLabel[] labelsLights;
 
     private JPanel panelIO;
+    private JPanel[] pnlRollers;
+    private JTextArea[] textRollers;
 
-    private JButton buttonSendMessage;
+    private JButton btnSendMessage;
+    private RoundButton btnSetRollers, btnSetPlugBoard;
 
     private JTextArea textFieldMsgEncrypted, textFieldMsgOriginal;
 
@@ -93,7 +100,6 @@ public class Gui extends JFrame implements ChangeListener {
         this.setExtendedState(JFrame.MAXIMIZED_BOTH); // Set full screen.
         // (do not actually update the frame size until after the constructor)
         //System.out.println("! " + getHeight() + "   " + getHeight());
-
         c = getContentPane();
 
         //this.setLayout(null);
@@ -117,14 +123,14 @@ public class Gui extends JFrame implements ChangeListener {
         c.add(jPanelChat);
 
         jPanelButtonsLights = new JPanel();
-        jPanelButtonsLights.setBounds(800, 290, 700, 200);
+        jPanelButtonsLights.setBounds(800, 290, 720, 250);
         jPanelButtonsLights.setLayout(null);
-        //jPanelButtonsLights.setBackground(Color.RED);
+        jPanelButtonsLights.setBackground(Color.RED);
 
         jPanelButtonskeyBoard = new JPanel();
-        jPanelButtonskeyBoard.setBounds(800, 550, 700, 200);
+        jPanelButtonskeyBoard.setBounds(800, 550, 720, 200);
         jPanelButtonskeyBoard.setLayout(null);
-        //jPanelButtonskeyBoard.setBackground(Color.BLUE);
+        jPanelButtonskeyBoard.setBackground(Color.BLUE);
 
 
         btnsKeyboard = new RoundButton[ALPHABET_LENGTH];
@@ -135,7 +141,7 @@ public class Gui extends JFrame implements ChangeListener {
         int startX = (jPanelButtonskeyBoard.getWidth() / 2) -
                 ((9 * KEYBOARD_BUTTONS_SIZE + 8 * KEYBOARD_BUTTONS_HORIZONTAL_SPACE) / 2);
         int keyboardStartY = 20;
-        int lightsStartY = 20;
+        int lightsStartY = 70;
         for (int i = 0; i < btnsKeyboard.length; i++) {
             btnsKeyboard[i] = new RoundButton(String.valueOf(ENIGMA_ALPHABET.charAt(i)));
             btnsKeyboard[i].setFocusable(false);
@@ -181,10 +187,40 @@ public class Gui extends JFrame implements ChangeListener {
         c.add(jPanelButtonskeyBoard);
         c.add(jPanelButtonsLights);
 
+
+        pnlRollers = new JPanel[enigma.getSelectedRollers().length];
+        textRollers = new JTextArea[enigma.getSelectedRollers().length];
+        int pnlRollerWidth = 20;
+        int pnlRollerHeight = 40;
+        int pnlRollerSpace = 10;
+        int pnlRollerStartX = jPanelButtonsLights.getWidth()/2 - pnlRollerSpace*(pnlRollers.length-1)/2 - pnlRollerWidth*(pnlRollers.length)/2;
+        int pnlRollerStartY = 10;
+
+        int textRollerWidth = pnlRollerWidth - 10;
+        int textRollerHeight = pnlRollerHeight - 25;
+        int textRollerOffsetX = (pnlRollerWidth - textRollerWidth)/2;
+        int textRollerOffsetY = (pnlRollerHeight - textRollerHeight)/2;
+        for(int i = 0; i < pnlRollers.length; i++){
+            pnlRollers[i] = new JPanel();
+            pnlRollers[i].setLayout(null);
+            pnlRollers[i].setBackground(Color.BLACK);
+            pnlRollers[i].setBounds(pnlRollerStartX + i*(pnlRollerWidth + pnlRollerSpace), pnlRollerStartY, pnlRollerWidth, pnlRollerHeight);
+            jPanelButtonsLights.add(pnlRollers[i]);
+
+            //TODO allain the text
+            textRollers[i] = new JTextArea(String.valueOf(enigma.getSelectedRollers()[pnlRollers.length - i - 1].getDisplayedLetter()));
+            textRollers[i].setBackground(Color.WHITE);
+            textRollers[i].setEnabled(false);
+            textRollers[i].setDisabledTextColor(Color.black);
+            textRollers[i].setBounds(textRollerOffsetX,textRollerOffsetY,textRollerWidth,textRollerHeight);
+            textRollers[i].setAlignmentY(Component.CENTER_ALIGNMENT);
+            textRollers[i].setAlignmentX(Component.CENTER_ALIGNMENT);
+            pnlRollers[i].add(textRollers[i]);
+
+        }
+
         panelIO = new JPanel();
-
-        panelIO.setBounds(800, 40, 700, 250);
-
+        panelIO.setBounds(800, 40, 720, 250);
         panelIO.setBackground(IO_PANEL_COLOR);
 
 
@@ -210,26 +246,40 @@ public class Gui extends JFrame implements ChangeListener {
         textFieldMsgEncrypted.setWrapStyleWord(true);
 
         // TODO event click logic
-        buttonSendMessage = new JButton("Send");
-
-        buttonSendMessage.setBounds((panelIO.getWidth() - 70) / 2, 20, 70, 30);
-
-        buttonSendMessage.setFocusable(false);
-
-        buttonSendMessage.setBackground(MSG_SEND_BUTTON);
+        btnSendMessage = new JButton("Send");
+        btnSendMessage.setBounds((panelIO.getWidth() - 70) / 2, 20, 70, 30);
+        btnSendMessage.setFocusable(false);
+        btnSendMessage.setBackground(MSG_SEND_BUTTON);
 
 
         panelIO.setLayout(null);
-
         panelIO.add(textFieldMsgEncrypted);
-
         panelIO.add(textFieldMsgOriginal);
-
-        panelIO.add(buttonSendMessage);
+        panelIO.add(btnSendMessage);
 
         c.add(panelIO);
 
         rollersSelectionWindow = new RollersSelectionDialog(this);
+
+        btnSetRollers = new RoundButton("rollers");
+        btnSetRollers.setFocusable(false);
+        btnSetRollers.addActionListener(this);
+        btnSetRollers.setBounds(620, 10,85,65);
+        btnSetRollers.setBackground(BTN_ENIGMA_CONFIGS);
+        btnSetRollers.serBorderColor(BTN_ENIGMA_CONFIGS_MARGIN);
+        jPanelButtonskeyBoard.add(btnSetRollers);
+
+
+        btnSetPlugBoard = new RoundButton("plug brd");
+        btnSetPlugBoard.setFocusable(false);
+        btnSetPlugBoard.addActionListener(this);
+        btnSetPlugBoard.setBounds(btnSetRollers.getX(), jPanelButtonskeyBoard.getHeight() - btnSetRollers.getY() - btnSetRollers.getHeight(),btnSetRollers.getWidth(),btnSetRollers.getHeight());
+        btnSetPlugBoard.setBackground(BTN_ENIGMA_CONFIGS);
+        btnSetPlugBoard.serBorderColor(BTN_ENIGMA_CONFIGS_MARGIN);
+        jPanelButtonskeyBoard.add(btnSetPlugBoard);
+
+
+
 
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
         //this.setResizable(false); // do not let you re put it full screen
@@ -237,6 +287,10 @@ public class Gui extends JFrame implements ChangeListener {
     }
 
     public void updateGraphic() {
+        for(int i = 0; i < textRollers.length; i++){
+            textRollers[i].setText(String.valueOf(enigma.getSelectedRollers()[pnlRollers.length - i - 1].getDisplayedLetter()));
+        }
+
 
     }
 
@@ -259,6 +313,10 @@ public class Gui extends JFrame implements ChangeListener {
     }
 
     @Override
+    public void actionPerformed(ActionEvent e){
+
+    }
+    @Override
     public void stateChanged(ChangeEvent e) {
         RoundButton source = (RoundButton) e.getSource();
 
@@ -278,6 +336,8 @@ public class Gui extends JFrame implements ChangeListener {
             //System.out.println(letter + " -> " + encryptedLetter);// debug
             textFieldMsgOriginal.setText(textFieldMsgOriginal.getText() + originalLetter);
             textFieldMsgEncrypted.setText(textFieldMsgEncrypted.getText() + encryptedLetter);
+
+            updateGraphic();
         }
 
         if (!textFieldMsgEncrypted.getText().isEmpty()) {
@@ -291,6 +351,7 @@ public class Gui extends JFrame implements ChangeListener {
                     lastPressedKeyboardButton.setForeground(KEYBOARD_NON_PRESSED_BUTTON);
                     lastPressedKeyboardButton = null;
                 }
+                updateGraphic();
             }
         }
     }

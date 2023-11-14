@@ -36,6 +36,10 @@ public class Roller extends Commutator
         return currentOffset;
 
     }
+    public char getDisplayedLetter() {
+        return (char)(currentOffset + 'A');
+
+    }
 
     public void advance(){
         currentOffset  = (currentOffset + 1) % ALPHABET_LENGTH;
