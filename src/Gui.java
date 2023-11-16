@@ -354,5 +354,6 @@ public class Gui extends JFrame implements ChangeListener, ActionListener {
             }
         }
     }
+
 }
 
