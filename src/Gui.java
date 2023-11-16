@@ -302,7 +302,6 @@ public class Gui extends JFrame implements ChangeListener, ActionListener {
         int centerX = getWidth() / 2; // get the center of the window.
 
         g2d.drawLine(centerX, 0, centerX, getHeight()); // draw the lines.
-
         g2d.drawLine(centerX, getHeight() * 2 / 3, 0, getHeight() * 2 / 3);
 
         //System.out.println(getHeight() + "   " + getHeight());
