@@ -188,6 +188,8 @@ public class Gui extends JFrame implements ChangeListener, ActionListener {
         jPanelButtonsLights.setLayout(null);
         //jPanelButtonsLights.setBackground(Color.RED);
 
+
+
         // TODO: add the space button to the buttonKeys array.
 
         jPanelButtonskeyBoard = new JPanel();
