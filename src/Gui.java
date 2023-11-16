@@ -169,7 +169,7 @@ public class Gui extends JFrame implements ChangeListener, ActionListener {
         jPanelChat = new JPanel();
         jPanelChat.setLayout(null);
         jPanelChat.setBounds(0, 0, getWidth() / 2, getHeight() * 2 / 3);
-        jPanelChat.setBackground(Color.BLUE);
+        //jPanelChat.setBackground(Color.BLUE);
         jPanelChat.setOpaque(true);
         jPanelChat.setVisible(true);
 
@@ -186,12 +186,14 @@ public class Gui extends JFrame implements ChangeListener, ActionListener {
         jPanelButtonsLights = new JPanel();
         jPanelButtonsLights.setBounds(800, 290, 720, 250);
         jPanelButtonsLights.setLayout(null);
-        jPanelButtonsLights.setBackground(Color.RED);
+        //jPanelButtonsLights.setBackground(Color.RED);
+
+        // TODO: add the space button to the buttonKeys array.
 
         jPanelButtonskeyBoard = new JPanel();
         jPanelButtonskeyBoard.setBounds(800, 550, 720, 200);
         jPanelButtonskeyBoard.setLayout(null);
-        jPanelButtonskeyBoard.setBackground(Color.BLUE);
+        //jPanelButtonskeyBoard.setBackground(Color.BLUE);
 
 
         btnsKeyboard = new RoundButton[ALPHABET_LENGTH];
