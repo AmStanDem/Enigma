@@ -4,8 +4,10 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
-import java.awt.*;import java.awt.event.ActionEvent;
+import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.*;
 import java.net.Socket;
@@ -30,6 +32,8 @@ public class Gui extends JFrame implements ChangeListener, ActionListener {
     public static final Dimension SCREEN_SIZE = Toolkit.getDefaultToolkit().getScreenSize();
     public static final Color KEYBOARD_NON_PRESSED_BUTTON = new Color(110, 110, 110);
     public static final Color KEYBOARD_PRESSED_BUTTON = new Color(58, 58, 58);
+
+    public static final Color DEFAULT_KEYBOARD_BACKGROUND_COLOR = new Color(192,192,192);
     public static final Color KEYBOARD_BORDER = new Color(35, 35, 35);
     public static final Color LIGHTS_OFF = new Color(250, 250, 221);
     public static final Color LIGHTS_ON = new Color(255, 246, 65);
@@ -39,6 +43,10 @@ public class Gui extends JFrame implements ChangeListener, ActionListener {
     public static final Color MSG_SEND_BUTTON = new Color(18, 243, 8);
     public static final Color BTN_ENIGMA_CONFIGS = new Color(51, 80, 225);
     public static final Color BTN_ENIGMA_CONFIGS_MARGIN = new Color(29, 29, 63);
+
+    private boolean pressingABtn;
+
+    private int codeLetterPressedBtn;
 
 
     private ServerThread t;
@@ -96,13 +104,12 @@ public class Gui extends JFrame implements ChangeListener, ActionListener {
         encryptedText = "";
 
 
-        setSize(SCREEN_SIZE.width, SCREEN_SIZE.height); // set the screen size
-        this.setExtendedState(JFrame.MAXIMIZED_BOTH); // Set full screen.
-        // (do not actually update the frame size until after the constructor)
-        //System.out.println("! " + getHeight() + "   " + getHeight());
+        setSize(SCREEN_SIZE.width, SCREEN_SIZE.height);
+        this.setExtendedState(JFrame.MAXIMIZED_BOTH);
+
         c = getContentPane();
 
-        //this.setLayout(null);
+
         c.setLayout(null);
         c = getContentPane();
 
@@ -115,7 +122,8 @@ public class Gui extends JFrame implements ChangeListener, ActionListener {
 
         textArea = new JTextArea();
         textArea.setBounds(0, 0, 100, 100);
-        textArea.enableInputMethods(false);
+        textArea.setEnabled(false);
+        textArea.setDisabledTextColor(Color.BLACK);
 
         jScrollPane = new JScrollPane(textArea);
         jScrollPane.setBounds(0, 50, getWidth() / 2, 400);
@@ -142,7 +150,9 @@ public class Gui extends JFrame implements ChangeListener, ActionListener {
                 ((9 * KEYBOARD_BUTTONS_SIZE + 8 * KEYBOARD_BUTTONS_HORIZONTAL_SPACE) / 2);
         int keyboardStartY = 20;
         int lightsStartY = 70;
-        for (int i = 0; i < btnsKeyboard.length; i++) {
+        for (int i = 0; i < btnsKeyboard.length; i++)
+        {
+
             btnsKeyboard[i] = new RoundButton(String.valueOf(ENIGMA_ALPHABET.charAt(i)));
             btnsKeyboard[i].setFocusable(false);
             btnsKeyboard[i].setForeground(KEYBOARD_NON_PRESSED_BUTTON);
@@ -186,6 +196,7 @@ public class Gui extends JFrame implements ChangeListener, ActionListener {
 
         c.add(jPanelButtonskeyBoard);
         c.add(jPanelButtonsLights);
+
 
 
         pnlRollers = new JPanel[enigma.getSelectedRollers().length];
@@ -294,6 +305,44 @@ public class Gui extends JFrame implements ChangeListener, ActionListener {
 
     }
 
+    private void buttonPressed(RoundButton button)
+    {
+        char originalLetter = button.getText().charAt(0);
+        plainText = plainText + originalLetter;
+
+
+
+        char encryptedLetter = enigma.pushKey(originalLetter);
+
+        plainText = plainText + originalLetter;
+        encryptedText = encryptedText + encryptedLetter;
+
+        writeCharacter(originalLetter, encryptedLetter);
+
+        updateGraphic();
+
+
+
+    }
+
+    private void buttonReleased(RoundButton button)
+    {
+
+        changeButtonsColor(button, DEFAULT_KEYBOARD_BACKGROUND_COLOR, KEYBOARD_NON_PRESSED_BUTTON);
+        labelsLights[getLastEncryptedLetterLightIndex()].setBackground(LIGHTS_OFF);
+
+        updateGraphic();
+    }
+
+
+
+
+    private void writeCharacter(char originalLetter, char encryptedLetter)
+    {
+        textFieldMsgOriginal.setText(textFieldMsgOriginal.getText() + originalLetter);
+        textFieldMsgEncrypted.setText(textFieldMsgEncrypted.getText() + encryptedLetter);
+    }
+
 
     public void paint(Graphics g) {
         super.paint(g);
@@ -304,56 +353,53 @@ public class Gui extends JFrame implements ChangeListener, ActionListener {
         g2d.drawLine(centerX, 0, centerX, getHeight()); // draw the lines.
         g2d.drawLine(centerX, getHeight() * 2 / 3, 0, getHeight() * 2 / 3);
 
-        //System.out.println(getHeight() + "   " + getHeight());
+
     }
 
     public void addTextArea(TextArea textArea) {
         textAreaVector.add(textArea);
     }
 
-    @Override
-    public void actionPerformed(ActionEvent e){
-
+    private void changeButtonsColor(RoundButton button, Color backgroundColor, Color foregroundColor)
+    {
+       button.setBackground(backgroundColor);
+       button.setForeground(foregroundColor);
     }
+
+    private int getLastEncryptedLetterLightIndex()
+    {
+        return ENIGMA_ALPHABET.indexOf(textFieldMsgEncrypted.getText().charAt(textFieldMsgEncrypted.getText().length() - 1));
+    }
+
+
+
+
     @Override
-    public void stateChanged(ChangeEvent e) {
-        RoundButton source = (RoundButton) e.getSource();
+    public void stateChanged(ChangeEvent e)
+    {
 
-        if ((lastPressedKeyboardButton == null || lastPressedKeyboardButton != source) && source.getModel().isPressed()) {
-            lastPressedKeyboardButton = source;
+        RoundButton btn = (RoundButton) e.getSource();
 
-            char originalLetter = source.getText().charAt(0);
-            plainText = plainText + originalLetter;
+        if (btn.getModel().isPressed() && !pressingABtn) {
+            codeLetterPressedBtn = btn.getText().charAt(0);
 
-            //System.out.println((int)letter + "!");// debug
+            buttonPressed(btn);
+            changeButtonsColor(btn,KEYBOARD_NON_PRESSED_BUTTON, KEYBOARD_PRESSED_BUTTON);
+            labelsLights[getLastEncryptedLetterLightIndex()].setBackground(LIGHTS_ON);
 
-            char encryptedLetter = enigma.pushKey(originalLetter);
-
-            plainText = plainText + originalLetter;
-            encryptedText = encryptedText + encryptedLetter;
-
-            //System.out.println(letter + " -> " + encryptedLetter);// debug
-            textFieldMsgOriginal.setText(textFieldMsgOriginal.getText() + originalLetter);
-            textFieldMsgEncrypted.setText(textFieldMsgEncrypted.getText() + encryptedLetter);
-
-            updateGraphic();
+            pressingABtn = true;
         }
 
-        if (!textFieldMsgEncrypted.getText().isEmpty()) {
-            int selectedLetterIndex = ENIGMA_ALPHABET.indexOf(textFieldMsgEncrypted.getText().charAt(textFieldMsgEncrypted.getText().length() - 1));
-            if (source.getModel().isPressed()) {
-                labelsLights[selectedLetterIndex].setBackground(LIGHTS_ON);
-                lastPressedKeyboardButton.setForeground(KEYBOARD_PRESSED_BUTTON);
-            } else {
-                labelsLights[selectedLetterIndex].setBackground(LIGHTS_OFF);
-                if(lastPressedKeyboardButton != null){
-                    lastPressedKeyboardButton.setForeground(KEYBOARD_NON_PRESSED_BUTTON);
-                    lastPressedKeyboardButton = null;
-                }
-                updateGraphic();
-            }
+        if (!btn.getModel().isPressed() && pressingABtn && btn.getText().charAt(0) == codeLetterPressedBtn) {
+            buttonReleased(btn);
+            pressingABtn = false;
+
         }
     }
 
+    @Override
+    public void actionPerformed(ActionEvent e) {
+
+    }
 }
 
