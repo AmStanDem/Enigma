@@ -72,7 +72,6 @@ public class Gui extends JFrame implements ChangeListener, ActionListener {
     private Container c;
 
     private RoundButton[] btnsKeyboard;
-    private RoundButton lastPressedKeyboardButton;
 
     private RoundLabel[] labelsLights;
 
@@ -94,14 +93,20 @@ public class Gui extends JFrame implements ChangeListener, ActionListener {
 
 
     //selezione rolli tramite jdialog
-    public Gui() throws IOException {
+    public Gui() {
         super(GUI_NAME);
 
-        this.setIconImage(ImageIO.read(IMAGE_ICON));
+        try {
+            this.setIconImage(ImageIO.read(IMAGE_ICON));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
         enigma = new Enigma();
         plainText = "";
         encryptedText = "";
+
+        pressingABtn = false;
 
 
         setSize(SCREEN_SIZE.width, SCREEN_SIZE.height);
@@ -112,6 +117,54 @@ public class Gui extends JFrame implements ChangeListener, ActionListener {
 
         c.setLayout(null);
         c = getContentPane();
+
+        this.addKeyListener(new KeyListener() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+
+            }
+
+            @Override
+            public void keyPressed(KeyEvent e) {
+                int keyChar = Character.toUpperCase(e.getKeyChar());
+
+                if (!pressingABtn && keyChar >= 'A' && keyChar <= 'Z')
+                {
+                    //System.out.println("keyPressed");
+
+                    int buttonIndex =  ENIGMA_ALPHABET.indexOf(keyChar);
+
+                    codeLetterPressedBtn = keyChar;
+
+                    //System.out.println(keyChar);
+                    buttonPressed(btnsKeyboard[buttonIndex]);
+                    changeButtonsColor(btnsKeyboard[buttonIndex],KEYBOARD_NON_PRESSED_BUTTON, KEYBOARD_PRESSED_BUTTON);
+                    labelsLights[getLastEncryptedLetterLightIndex()].setBackground(LIGHTS_ON);
+
+                    updateGraphic();
+
+                    pressingABtn = true;
+                }
+
+
+            }
+
+            @Override
+            public void keyReleased(KeyEvent e)
+            {
+                int keyChar = Character.toUpperCase(e.getKeyChar());
+
+                //System.out.println("keyReleased");
+                if (keyChar == codeLetterPressedBtn)
+                {
+                    buttonReleased(btnsKeyboard[ENIGMA_ALPHABET.indexOf(keyChar)]);
+                    pressingABtn = false;
+
+                }
+
+            }
+
+        });
 
         jPanelChat = new JPanel();
         jPanelChat.setLayout(null);
@@ -145,7 +198,6 @@ public class Gui extends JFrame implements ChangeListener, ActionListener {
         labelsLights = new RoundLabel[ALPHABET_LENGTH];
 
 
-        lastPressedKeyboardButton = null;
         int startX = (jPanelButtonskeyBoard.getWidth() / 2) -
                 ((9 * KEYBOARD_BUTTONS_SIZE + 8 * KEYBOARD_BUTTONS_HORIZONTAL_SPACE) / 2);
         int keyboardStartY = 20;

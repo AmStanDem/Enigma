@@ -14,7 +14,7 @@ public class Main
             {
                 try {
                     new Gui().setVisible(true);
-                } catch (IOException e) {
+                } catch (RuntimeException e) {
                     throw new RuntimeException(e);
                 }
             }
