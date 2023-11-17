@@ -49,8 +49,10 @@ public class Gui extends JFrame implements ChangeListener, ActionListener {
     private int codeLetterPressedBtn;
 
 
-    private ServerThread t;
-    public Socket cSocket;
+    private int connectionState;
+    private ServerThread serverThread;
+    public ServerSocket sSocket;
+    public Socket otherSocket;
     public BufferedReader input;
     public PrintWriter output;
 
@@ -76,6 +78,8 @@ public class Gui extends JFrame implements ChangeListener, ActionListener {
     private RoundLabel[] labelsLights;
 
     private JPanel panelIO;
+
+    private JPanel panelConnection;
     private JPanel[] pnlRollers;
     private JTextArea[] textRollers;
 
@@ -84,9 +88,14 @@ public class Gui extends JFrame implements ChangeListener, ActionListener {
 
     private JTextArea textFieldMsgEncrypted, textFieldMsgOriginal;
 
-    private JTextField textFieldIP;
+    private JTextField textMyIP, textOtherIP;
+    private boolean havingIp;
 
     private JLabel labelConnectionStatus;
+
+    private RoundButton btnReceiver, btnSender;
+
+    private JButton btnDisconnect;
 
     Enigma enigma;
     String plainText, encryptedText;
@@ -103,6 +112,10 @@ public class Gui extends JFrame implements ChangeListener, ActionListener {
         }
 
         enigma = new Enigma();
+
+
+
+
         plainText = "";
         encryptedText = "";
 
@@ -117,6 +130,8 @@ public class Gui extends JFrame implements ChangeListener, ActionListener {
 
         c.setLayout(null);
         c = getContentPane();
+
+        connectionState = CONNECTION_CLOSED;
 
         this.addKeyListener(new KeyListener() {
             @Override
@@ -168,8 +183,8 @@ public class Gui extends JFrame implements ChangeListener, ActionListener {
 
         jPanelChat = new JPanel();
         jPanelChat.setLayout(null);
-        jPanelChat.setBounds(0, 0, getWidth() / 2, getHeight() * 2 / 3);
-        //jPanelChat.setBackground(Color.BLUE);
+        jPanelChat.setBounds(0, 0, getWidth() / 2, getHeight() * 2 / 3 - 100);
+        jPanelChat.setBackground(Color.GREEN);
         jPanelChat.setOpaque(true);
         jPanelChat.setVisible(true);
 
@@ -195,8 +210,6 @@ public class Gui extends JFrame implements ChangeListener, ActionListener {
         jPanelButtonskeyBoard = new JPanel();
         jPanelButtonskeyBoard.setBounds(800, 550, 720, 200);
         jPanelButtonskeyBoard.setLayout(null);
-        //jPanelButtonskeyBoard.setBackground(Color.BLUE);
-
 
         btnsKeyboard = new RoundButton[ALPHABET_LENGTH];
         labelsLights = new RoundLabel[ALPHABET_LENGTH];
@@ -346,7 +359,75 @@ public class Gui extends JFrame implements ChangeListener, ActionListener {
         jPanelButtonskeyBoard.add(btnSetPlugBoard);
 
 
+        // Gui connection zone
 
+        panelConnection = new JPanel(null);
+
+        panelConnection.setSize(700,220);
+
+        panelConnection.setLocation(30,550);
+
+
+
+        // debug color
+
+        panelConnection.setBackground(Color.BLUE);
+
+        btnReceiver = new RoundButton("Receiver");
+
+        btnReceiver.setBounds(30,20,110,45);
+
+        btnReceiver.setBackground(BTN_RECEIVER);
+
+        btnReceiver.setFocusable(false);
+
+        btnReceiver.addActionListener(this);
+
+        btnSender = new RoundButton("Sender");
+
+        btnSender.setBounds(btnReceiver.getX(),btnReceiver.getY() + btnReceiver.getHeight() + 25,btnReceiver.getWidth(),btnReceiver.getHeight());
+
+        btnSender.setBackground(BTN_SENDER);
+
+        btnSender.setFocusable(false);
+
+        btnSender.addActionListener(this);
+
+        btnDisconnect = new JButton("Disconnect");
+
+        btnDisconnect.setBounds(btnSender.getX(),btnSender.getY() + btnSender.getHeight() + 25,btnSender.getWidth(),btnSender.getHeight());
+
+        btnDisconnect.setEnabled(false);
+
+        btnDisconnect.setBackground(BTN_GENERIC_DISABLED);
+
+        btnDisconnect.setFocusable(false);
+
+        btnDisconnect.addActionListener(this);
+
+
+        textMyIP = new JTextField("");
+        try {
+            textMyIP.setText(Inet4Address.getLocalHost().getHostAddress());
+            havingIp = true;
+        } catch (UnknownHostException e) {
+            havingIp = false;
+        }
+
+        textMyIP.setEnabled(false);
+        textMyIP.setDisabledTextColor(Color.BLACK);
+        textMyIP.setBounds(btnReceiver.getX() + btnReceiver.getWidth() + 30, btnReceiver.getY() + btnReceiver.getHeight()/2 - 15, 100,30);
+
+        textOtherIP = new JTextField();
+        textOtherIP.setBounds(btnSender.getX() + btnSender.getWidth() + 30, btnSender.getY() + btnSender.getHeight()/2 - 15, 100, 30);
+
+        panelConnection.add(btnReceiver);
+        panelConnection.add(btnSender);
+        panelConnection.add(btnDisconnect);
+        panelConnection.add(textMyIP);
+        panelConnection.add(textOtherIP);
+
+        c.add(panelConnection);
 
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
         //this.setResizable(false); // do not let you re put it full screen
@@ -428,6 +509,12 @@ public class Gui extends JFrame implements ChangeListener, ActionListener {
     }
 
 
+    public static boolean validate(final String ip) {
+        String PATTERN = "^((0|1\\d?\\d?|2[0-4]?\\d?|25[0-5]?|[3-9]\\d?)\\.){3}(0|1\\d?\\d?|2[0-4]?\\d?|25[0-5]?|[3-9]\\d?)$";
+
+        return ip.matches(PATTERN);
+    }
+
 
 
     @Override
@@ -453,9 +540,117 @@ public class Gui extends JFrame implements ChangeListener, ActionListener {
         }
     }
 
-    @Override
-    public void actionPerformed(ActionEvent e) {
 
+
+
+    /*
+    * Logic for the buttonReceiver, buttonSender and buttonDisconnect-*/
+    @Override
+    public void actionPerformed(ActionEvent e)
+    {
+        JButton button = (JButton) e.getSource();
+
+
+
+        if (button.equals(btnReceiver))
+        {
+            // SERVER
+
+            // When the button is pressed it should start the server which is refered to the automaticaly assigned IP.
+            if(connectionState == CONNECTION_CLOSED){
+                serverThread = new ServerThread(this);
+                serverThread.start();
+                connectionState = CONNECTION_BIND;
+                btnSender.setEnabled(false);
+                btnSender.setBackground(BTN_GENERIC_DISABLED);
+                btnReceiver.setEnabled(false);
+                btnReceiver.setBackground(BTN_GENERIC_DISABLED);
+                btnDisconnect.setEnabled(true);
+                btnDisconnect.setBackground(BTN_DISCONNECT);
+            }
+
+
+        }
+        else if (button.equals(btnSender))
+        {
+            // CLIENT
+            if(connectionState == CONNECTION_CLOSED){
+
+
+                //check ip
+                if (validate(textOtherIP.getText()))
+                //if the ip is accettable
+                {
+                    try {
+                        otherSocket = new Socket(textOtherIP.getText(), PORT);
+                        connectionState = CONNECTION_OPEN;
+
+                        btnSender.setEnabled(false);
+                        btnSender.setBackground(BTN_GENERIC_DISABLED);
+                        btnReceiver.setEnabled(false);
+                        btnReceiver.setBackground(BTN_GENERIC_DISABLED);
+                        btnDisconnect.setEnabled(true);
+                        btnDisconnect.setBackground(BTN_DISCONNECT);
+                    } catch (IOException ex) {
+                        textOtherIP.setText("");
+                        JDialog dialogTmp = new JDialog(this, "error");
+                        dialogTmp.add(new JLabel("could not connect to the ip"));
+                        dialogTmp.setSize(120,80);
+                        dialogTmp.setLocation((this.getWidth() - 120)/2, (this.getHeight() - 80)/2);
+                        dialogTmp.setResizable(false);
+                        dialogTmp.setAlwaysOnTop(true);
+                        dialogTmp.setModalityType(Dialog.ModalityType.APPLICATION_MODAL);
+                        dialogTmp.setAutoRequestFocus(true);
+                        dialogTmp.setVisible(true);
+                    }
+
+                }else{
+                    textOtherIP.setText("");
+                    JDialog dialogTmp = new JDialog(this, "error");
+                    dialogTmp.add(new JLabel("invalid ip"));
+                    dialogTmp.setSize(120,80);
+                    dialogTmp.setLocation((this.getWidth() - 120)/2, (this.getHeight() - 80)/2);
+                    dialogTmp.setResizable(false);
+                    dialogTmp.setAlwaysOnTop(true);
+                    dialogTmp.setModalityType(Dialog.ModalityType.APPLICATION_MODAL);
+                    dialogTmp.setAutoRequestFocus(true);
+                    dialogTmp.setVisible(true);
+                }
+            }
+        }
+        else if (button.equals(btnDisconnect))
+        {
+            /*
+            * when it is pressed it should destroy the connection.
+            *
+            * */
+
+            if (connectionState == CONNECTION_BIND){
+                //System.out.println("CIAOOOOO");
+                serverThread.interrupt();
+                try {
+                    sSocket.close();
+                } catch (IOException ex) {}
+                connectionState = CONNECTION_CLOSED;
+                btnSender.setEnabled(true);
+                btnSender.setBackground(BTN_SENDER);
+                btnReceiver.setEnabled(true);
+                btnReceiver.setBackground(BTN_RECEIVER);
+                btnDisconnect.setEnabled(false);
+                btnDisconnect.setBackground(BTN_GENERIC_DISABLED);
+            }
+            if (connectionState == CONNECTION_OPEN){
+
+                connectionState = CONNECTION_CLOSED;
+                btnSender.setEnabled(true);
+                btnSender.setBackground(BTN_SENDER);
+                btnReceiver.setEnabled(true);
+                btnReceiver.setBackground(BTN_RECEIVER);
+                btnDisconnect.setEnabled(false);
+                btnDisconnect.setBackground(BTN_GENERIC_DISABLED);
+            }
+
+        }
     }
 }
 

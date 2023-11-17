@@ -6,7 +6,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 public class ServerThread extends Thread{
-    Gui gui;
+    private Gui gui;
 
     public ServerThread(Gui gui){
         this.gui = gui;
@@ -15,17 +15,28 @@ public class ServerThread extends Thread{
 
     @Override
     public void run() {
-        try {
-            Socket s = new ServerSocket(Gui.PORT).accept();
+        try
+        {
+
+            System.out.println("Il Thread partirà");
+
+            gui.sSocket = new ServerSocket(Gui.PORT);
+            Socket s = gui.sSocket.accept();
 
             gui.input = new BufferedReader(new InputStreamReader(s.getInputStream()));
             gui.output = new PrintWriter(s.getOutputStream());
 
             gui.cSocket = s;
 
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
+        catch (IOException e)
+        {
+            //System.out.println("IOException");
+        }catch (Exception e){
+            //System.out.println("exception generica");
+        }
+
+        //System.out.println("Ciao giosuè");
 
 
     }
