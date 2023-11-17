@@ -431,6 +431,7 @@ public class Gui extends JFrame implements ChangeListener, ActionListener {
         textMyIP.setBounds(btnReceiver.getX() + btnReceiver.getWidth() + 30, btnReceiver.getY() + btnReceiver.getHeight()/2 - 15, 100,30);
 
         textOtherIP = new JTextField();
+        textOtherIP.setDisabledTextColor(Color.BLACK);
         textOtherIP.setBounds(btnSender.getX() + btnSender.getWidth() + 30, btnSender.getY() + btnSender.getHeight()/2 - 15, 100, 30);
 
         panelConnection.add(btnReceiver);
@@ -521,7 +522,7 @@ public class Gui extends JFrame implements ChangeListener, ActionListener {
     }
 
 
-    public static boolean validate(final String ip) {
+    public static boolean validateIp(final String ip) {
         String PATTERN = "^((0|1\\d?\\d?|2[0-4]?\\d?|25[0-5]?|[3-9]\\d?)\\.){3}(0|1\\d?\\d?|2[0-4]?\\d?|25[0-5]?|[3-9]\\d?)$";
 
         return ip.matches(PATTERN);
@@ -579,6 +580,8 @@ public class Gui extends JFrame implements ChangeListener, ActionListener {
                 btnReceiver.setBackground(BTN_GENERIC_DISABLED);
                 btnDisconnect.setEnabled(true);
                 btnDisconnect.setBackground(BTN_DISCONNECT);
+                textOtherIP.setEnabled(false);
+                textOtherIP.setText("");
             }
 
 
@@ -590,7 +593,7 @@ public class Gui extends JFrame implements ChangeListener, ActionListener {
 
 
                 //check ip
-                if (validate(textOtherIP.getText()))
+                if (validateIp(textOtherIP.getText()))
                 //if the ip is accettable
                 {
                     try {
@@ -603,12 +606,13 @@ public class Gui extends JFrame implements ChangeListener, ActionListener {
                         btnReceiver.setBackground(BTN_GENERIC_DISABLED);
                         btnDisconnect.setEnabled(true);
                         btnDisconnect.setBackground(BTN_DISCONNECT);
+                        textOtherIP.setEnabled(true);
                     } catch (IOException ex) {
                         textOtherIP.setText("");
                         JDialog dialogTmp = new JDialog(this, "error");
                         dialogTmp.add(new JLabel("could not connect to the ip"));
-                        dialogTmp.setSize(120,80);
-                        dialogTmp.setLocation((this.getWidth() - 120)/2, (this.getHeight() - 80)/2);
+                        dialogTmp.setSize(200,80);
+                        dialogTmp.setLocation((this.getWidth() - 200)/2, (this.getHeight() - 80)/2);
                         dialogTmp.setResizable(false);
                         dialogTmp.setAlwaysOnTop(true);
                         dialogTmp.setModalityType(Dialog.ModalityType.APPLICATION_MODAL);
@@ -650,6 +654,8 @@ public class Gui extends JFrame implements ChangeListener, ActionListener {
                 btnReceiver.setBackground(BTN_RECEIVER);
                 btnDisconnect.setEnabled(false);
                 btnDisconnect.setBackground(BTN_GENERIC_DISABLED);
+                textOtherIP.setEnabled(true);
+                textOtherIP.setText("");
             }
             if (connectionState == CONNECTION_OPEN){
 
@@ -660,6 +666,8 @@ public class Gui extends JFrame implements ChangeListener, ActionListener {
                 btnReceiver.setBackground(BTN_RECEIVER);
                 btnDisconnect.setEnabled(false);
                 btnDisconnect.setBackground(BTN_GENERIC_DISABLED);
+                textOtherIP.setEnabled(true);
+                textOtherIP.setText("");
             }
 
         }
