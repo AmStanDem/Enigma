@@ -26,7 +26,7 @@ public class ServerThread extends Thread{
             gui.input = new BufferedReader(new InputStreamReader(s.getInputStream()));
             gui.output = new PrintWriter(s.getOutputStream());
 
-            gui.cSocket = s;
+            gui.otherSocket = s;
 
         }
         catch (IOException e)

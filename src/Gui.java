@@ -10,7 +10,10 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.*;
+import java.net.Inet4Address;
+import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.Vector;
 
 public class Gui extends JFrame implements ChangeListener, ActionListener {
@@ -43,6 +46,15 @@ public class Gui extends JFrame implements ChangeListener, ActionListener {
     public static final Color MSG_SEND_BUTTON = new Color(18, 243, 8);
     public static final Color BTN_ENIGMA_CONFIGS = new Color(51, 80, 225);
     public static final Color BTN_ENIGMA_CONFIGS_MARGIN = new Color(29, 29, 63);
+    public static final Color BTN_RECEIVER = new Color(239, 123, 6);
+    public static final Color BTN_SENDER = new Color(232, 196, 12);
+    public static final Color BTN_DISCONNECT = new Color(238, 8, 49);
+    public static final Color BTN_GENERIC_DISABLED = new Color(108, 105, 105);
+
+    private static final int CONNECTION_CLOSED = 0;
+    private static final int CONNECTION_BIND = 1;
+    private static final int CONNECTION_OPEN = 2;
+
 
     private boolean pressingABtn;
 
