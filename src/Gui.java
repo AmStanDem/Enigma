@@ -20,18 +20,14 @@ public class Gui extends JFrame implements ChangeListener, ActionListener
 {
     public static int PORT = 60000;
     public static final String GUI_NAME = "Enigma machine";
+    private static final File FRAME_IMAGE_ICON = new File("assets/images/Enigma_Icon.png");
 
     private static final String ENIGMA_ALPHABET = "QWERTZUIOASDFGHJKPYXCVBNML";
-
     private static final int ALPHABET_LENGTH = ENIGMA_ALPHABET.length();
-
-    private static final File IMAGE_ICON = new File("assets/images/Enigma_Icon.png");
 
     private static final int KEYBOARD_BUTTONS_SIZE = 45;
     private static final int KEYBOARD_BUTTONS_HORIZONTAL_SPACE = 12;
     private static final int KEYBOARD_BUTTONS_VERTICAL_SPACE = 18;
-
-    private static final String ACTION_COMMAND_KEYBOARD_BUTTONS = "KEYBOARD_BUTTON";
 
     public static final Dimension SCREEN_SIZE = Toolkit.getDefaultToolkit().getScreenSize();
     
@@ -53,14 +49,13 @@ public class Gui extends JFrame implements ChangeListener, ActionListener
     public static final Color COLOR_BTN_SET_CONNECTION = new Color(8, 238, 39);
     public static final Color COLOR_BTN_GENERIC_DISABLED = new Color(108, 105, 105);
 
-    private static final int CONNECTION_CLOSED = 0;
-    private static final int CONNECTION_BIND = 1;
-    private static final int CONNECTION_OPEN = 2;
-
+    private static final int STATE_CONNECTION_CLOSED = 0;
+    private static final int STATE_CONNECTION_BIND = 1;
+    private static final int STATE_CONNECTION_OPEN = 2;
+    private static final int STATE_CONNECTION_NOT_USED = 3;
 
     private boolean pressingABtn;
-
-    private int codeLetterPressedBtn;
+    private char currentlyPressedLetter;
 
     private int connectionState;
     private ServerThread serverThread;
@@ -71,27 +66,17 @@ public class Gui extends JFrame implements ChangeListener, ActionListener
 
 
     private JPanel jPanelChat;
-
     private JPanel jPanelButtonskeyBoard;
-
     private JPanel jPanelButtonsLights;
-
     private Vector<TextArea> textAreaVector;
-
     private JTextArea textArea;
-
     private JScrollPane jScrollPane;
-
     private RollersSelectionDialog rollersSelectionWindow;
-
     private Container c;
-
     private RoundButton[] btnsKeyboard;
-
     private RoundLabel[] labelsLights;
 
     private JPanel panelIO;
-
     private JPanel panelConnection;
     private JPanel[] pnlRollers;
     private JTextArea[] textRollers;
@@ -105,9 +90,7 @@ public class Gui extends JFrame implements ChangeListener, ActionListener
     private boolean havingIp;
 
     private JLabel labelConnectionStatus;
-
     private RoundButton btnReceiver, btnSender;
-
     private JButton btnDisconnect;
 
     Enigma enigma;
@@ -119,15 +102,12 @@ public class Gui extends JFrame implements ChangeListener, ActionListener
         super(GUI_NAME);
 
         try {
-            this.setIconImage(ImageIO.read(IMAGE_ICON));
+            this.setIconImage(ImageIO.read(FRAME_IMAGE_ICON));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
         enigma = new Enigma();
-
-
-
 
         plainText = "";
         encryptedText = "";
@@ -144,7 +124,7 @@ public class Gui extends JFrame implements ChangeListener, ActionListener
         c.setLayout(null);
         c = getContentPane();
 
-        connectionState = CONNECTION_CLOSED;
+        connectionState = STATE_CONNECTION_NOT_USED;
 
         this.addKeyListener(new KeyListener() {
             @Override
@@ -162,16 +142,9 @@ public class Gui extends JFrame implements ChangeListener, ActionListener
 
                     int buttonIndex = ENIGMA_ALPHABET.indexOf(keyChar);
 
-                    codeLetterPressedBtn = keyChar;
-
-                    //System.out.println(keyChar);
                     buttonPressed(btnsKeyboard[buttonIndex]);
-                    changeButtonsColor(btnsKeyboard[buttonIndex],KEYBOARD_NON_PRESSED_BUTTON, KEYBOARD_PRESSED_BUTTON);
-                    labelsLights[getLastEncryptedLetterLightIndex()].setBackground(LIGHTS_ON);
 
                     updateGraphic();
-
-                    pressingABtn = true;
                 }
 
 
@@ -183,10 +156,11 @@ public class Gui extends JFrame implements ChangeListener, ActionListener
                 int keyChar = Character.toUpperCase(e.getKeyChar());
 
                 //System.out.println("keyReleased");
-                if (keyChar == codeLetterPressedBtn)
+                if (keyChar == currentlyPressedLetter)
                 {
                     buttonReleased(btnsKeyboard[ENIGMA_ALPHABET.indexOf(keyChar)]);
-                    pressingABtn = false;
+
+                    updateGraphic();
 
                 }
 
@@ -237,18 +211,18 @@ public class Gui extends JFrame implements ChangeListener, ActionListener
 
             btnsKeyboard[i] = new RoundButton(String.valueOf(ENIGMA_ALPHABET.charAt(i)));
             btnsKeyboard[i].setFocusable(false);
-            btnsKeyboard[i].setForeground(KEYBOARD_NON_PRESSED_BUTTON);
-            btnsKeyboard[i].serBorderColor(KEYBOARD_BORDER);
-            btnsKeyboard[i].setActionCommand(ACTION_COMMAND_KEYBOARD_BUTTONS);
+            btnsKeyboard[i].serBorderColor(COLOR_KEYBOARD_BORDER);
             btnsKeyboard[i].addChangeListener(this);
             btnsKeyboard[i].setSize(KEYBOARD_BUTTONS_SIZE, KEYBOARD_BUTTONS_SIZE);
+            btnsKeyboard[i].setBackground(COLOR_KEYBOARD_BACKGROUND);
+            btnsKeyboard[i].setForeground(COLOR_KEYBOARD_FOREGROUND);
 
             labelsLights[i] = new RoundLabel(String.valueOf(ENIGMA_ALPHABET.charAt(i)));
             labelsLights[i].setFocusable(false);
             labelsLights[i].setEnabled(false);
             labelsLights[i].setHorizontalAlignment(SwingConstants.CENTER);
-            labelsLights[i].setBackground(LIGHTS_OFF);
-            labelsLights[i].serBorderColor(LIGHTS_BORDER);
+            labelsLights[i].setBackground(COLOR_LIGHTS_OFF);
+            labelsLights[i].serBorderColor(COLOR_LIGHTS_BORDER);
             labelsLights[i].setSize(KEYBOARD_BUTTONS_SIZE, KEYBOARD_BUTTONS_SIZE);
 
 
@@ -314,7 +288,7 @@ public class Gui extends JFrame implements ChangeListener, ActionListener
 
         panelIO = new JPanel();
         panelIO.setBounds(800, 40, 720, 250);
-        panelIO.setBackground(IO_PANEL_COLOR);
+        panelIO.setBackground(COLOR_IO_PANEL_COLOR);
 
 
         SimpleAttributeSet attribs = new SimpleAttributeSet();
@@ -323,7 +297,7 @@ public class Gui extends JFrame implements ChangeListener, ActionListener
         textFieldMsgOriginal = new JTextArea();
         textFieldMsgOriginal.setDisabledTextColor(Color.black);
         textFieldMsgOriginal.setBounds(20, 70, 300, 150);
-        textFieldMsgOriginal.setBackground(TEXTES_COLOR);
+        textFieldMsgOriginal.setBackground(COLOR_TEXTS);
         textFieldMsgOriginal.setEnabled(false);
         textFieldMsgOriginal.setPreferredSize(new Dimension(300, 20));
         textFieldMsgOriginal.setLineWrap(true);
@@ -333,7 +307,7 @@ public class Gui extends JFrame implements ChangeListener, ActionListener
         textFieldMsgEncrypted.setEnabled(false);
         textFieldMsgEncrypted.setDisabledTextColor(Color.black);
         textFieldMsgEncrypted.setBounds(panelIO.getWidth() - textFieldMsgOriginal.getX() - textFieldMsgOriginal.getWidth(), textFieldMsgOriginal.getY(), textFieldMsgOriginal.getWidth(), textFieldMsgOriginal.getHeight());
-        textFieldMsgEncrypted.setBackground(TEXTES_COLOR);
+        textFieldMsgEncrypted.setBackground(COLOR_TEXTS);
         textFieldMsgEncrypted.setPreferredSize(new Dimension(textFieldMsgOriginal.getWidth(), textFieldMsgOriginal.getHeight()));
         textFieldMsgEncrypted.setLineWrap(true);
         textFieldMsgEncrypted.setWrapStyleWord(true);
@@ -342,7 +316,7 @@ public class Gui extends JFrame implements ChangeListener, ActionListener
         btnSendMessage = new JButton("Send");
         btnSendMessage.setBounds((panelIO.getWidth() - 70) / 2, 20, 70, 30);
         btnSendMessage.setFocusable(false);
-        btnSendMessage.setBackground(MSG_SEND_BUTTON);
+        btnSendMessage.setBackground(COLOR_MSG_SEND_BUTTON);
 
 
         panelIO.setLayout(null);
@@ -358,8 +332,8 @@ public class Gui extends JFrame implements ChangeListener, ActionListener
         btnSetRollers.setFocusable(false);
         btnSetRollers.addActionListener(this);
         btnSetRollers.setBounds(620, 10,85,65);
-        btnSetRollers.setBackground(BTN_ENIGMA_CONFIGS);
-        btnSetRollers.serBorderColor(BTN_ENIGMA_CONFIGS_MARGIN);
+        btnSetRollers.setBackground(COLOR_BTN_ENIGMA_CONFIGS);
+        btnSetRollers.serBorderColor(COLOR_BTN_ENIGMA_CONFIGS_MARGIN);
         jPanelButtonskeyBoard.add(btnSetRollers);
 
 
@@ -367,17 +341,15 @@ public class Gui extends JFrame implements ChangeListener, ActionListener
         btnSetPlugBoard.setFocusable(false);
         btnSetPlugBoard.addActionListener(this);
         btnSetPlugBoard.setBounds(btnSetRollers.getX(), jPanelButtonskeyBoard.getHeight() - btnSetRollers.getY() - btnSetRollers.getHeight(),btnSetRollers.getWidth(),btnSetRollers.getHeight());
-        btnSetPlugBoard.setBackground(BTN_ENIGMA_CONFIGS);
-        btnSetPlugBoard.serBorderColor(BTN_ENIGMA_CONFIGS_MARGIN);
+        btnSetPlugBoard.setBackground(COLOR_BTN_ENIGMA_CONFIGS);
+        btnSetPlugBoard.serBorderColor(COLOR_BTN_ENIGMA_CONFIGS_MARGIN);
         jPanelButtonskeyBoard.add(btnSetPlugBoard);
 
 
         // Gui connection zone
 
         panelConnection = new JPanel(null);
-
         panelConnection.setSize(700,220);
-
         panelConnection.setLocation(30,550);
 
 
@@ -385,39 +357,24 @@ public class Gui extends JFrame implements ChangeListener, ActionListener
         // debug color
 
         panelConnection.setBackground(Color.BLUE);
-
         btnReceiver = new RoundButton("Receiver");
-
         btnReceiver.setBounds(30,20,110,45);
-
-        btnReceiver.setBackground(BTN_RECEIVER);
-
+        btnReceiver.setBackground(COLOR_BTN_RECEIVER);
         btnReceiver.setFocusable(false);
-
         btnReceiver.addActionListener(this);
 
         btnSender = new RoundButton("Sender");
-
         btnSender.setBounds(btnReceiver.getX(),btnReceiver.getY() + btnReceiver.getHeight() + 25,btnReceiver.getWidth(),btnReceiver.getHeight());
-
-        btnSender.setBackground(BTN_SENDER);
-
+        btnSender.setBackground(COLOR_BTN_SENDER);
         btnSender.setFocusable(false);
-
         btnSender.addActionListener(this);
 
         btnDisconnect = new JButton("Disconnect");
-
         btnDisconnect.setBounds(btnSender.getX(),btnSender.getY() + btnSender.getHeight() + 25,btnSender.getWidth(),btnSender.getHeight());
-
         btnDisconnect.setEnabled(false);
-
-        btnDisconnect.setBackground(BTN_GENERIC_DISABLED);
-
+        btnDisconnect.setBackground(COLOR_BTN_GENERIC_DISABLED);
         btnDisconnect.setFocusable(false);
-
         btnDisconnect.addActionListener(this);
-
 
         textMyIP = new JTextField("");
         try {
@@ -426,7 +383,6 @@ public class Gui extends JFrame implements ChangeListener, ActionListener
         } catch (UnknownHostException e) {
             havingIp = false;
         }
-
         textMyIP.setEnabled(false);
         textMyIP.setDisabledTextColor(Color.BLACK);
         textMyIP.setBounds(btnReceiver.getX() + btnReceiver.getWidth() + 30, btnReceiver.getY() + btnReceiver.getHeight()/2 - 15, 100,30);
@@ -434,6 +390,7 @@ public class Gui extends JFrame implements ChangeListener, ActionListener
         textOtherIP = new JTextField();
         textOtherIP.setDisabledTextColor(Color.BLACK);
         textOtherIP.setBounds(btnSender.getX() + btnSender.getWidth() + 30, btnSender.getY() + btnSender.getHeight()/2 - 15, 100, 30);
+
 
         panelConnection.add(btnReceiver);
         panelConnection.add(btnSender);
@@ -443,9 +400,13 @@ public class Gui extends JFrame implements ChangeListener, ActionListener
 
         c.add(panelConnection);
 
+
+
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
         //this.setResizable(false); // do not let you re put it full screen
         this.setVisible(true);
+
+        updateGraphic();
     }
 
     public void updateGraphic() {
@@ -454,6 +415,23 @@ public class Gui extends JFrame implements ChangeListener, ActionListener
         }
 
 
+        //update connection things
+        btnSender.setEnabled(connectionState == STATE_CONNECTION_CLOSED);
+        btnReceiver.setEnabled(connectionState == STATE_CONNECTION_CLOSED);
+        btnDisconnect.setEnabled(true);
+
+        btnSender.setBackground(btnSender.isEnabled() ? COLOR_BTN_SENDER : COLOR_BTN_GENERIC_DISABLED);
+        btnReceiver.setBackground(btnReceiver.isEnabled() ? COLOR_BTN_RECEIVER : COLOR_BTN_GENERIC_DISABLED);
+        if(connectionState == STATE_CONNECTION_NOT_USED){
+            btnDisconnect.setBackground(COLOR_BTN_SET_CONNECTION);
+            btnDisconnect.setText("connect");
+        }else{
+            btnDisconnect.setBackground(btnDisconnect.isEnabled() ? COLOR_BTN_DISCONNECT : COLOR_BTN_GENERIC_DISABLED);
+            btnDisconnect.setText("disconnect");
+        }
+
+        textOtherIP.setEnabled(connectionState == STATE_CONNECTION_CLOSED);
+
     }
 
     private void buttonPressed(RoundButton button)
@@ -461,28 +439,32 @@ public class Gui extends JFrame implements ChangeListener, ActionListener
         currentlyPressedLetter = button.getText().charAt(0);
         plainText = plainText + currentlyPressedLetter;
 
-        char encryptedLetter = enigma.pushKey(originalLetter);
-
-        plainText = plainText + originalLetter;
+        char encryptedLetter = enigma.pushKey(currentlyPressedLetter);
         encryptedText = encryptedText + encryptedLetter;
 
-        writeCharacter(originalLetter, encryptedLetter);
+        writeCharacterOnGui(currentlyPressedLetter, encryptedLetter);
+
+        pressingABtn = true;
+
+        changeEnigmaButtonsColor(button, true);
+        changeLightsColor(labelsLights[getLastEncryptedLetterLightIndex()], true);
 
     }
 
     private void buttonReleased(RoundButton button)
     {
 
-        changeButtonsColor(button, DEFAULT_KEYBOARD_BACKGROUND_COLOR, KEYBOARD_NON_PRESSED_BUTTON);
-        labelsLights[getLastEncryptedLetterLightIndex()].setBackground(LIGHTS_OFF);
+        pressingABtn = false;
 
-        updateGraphic();
+        changeEnigmaButtonsColor(button, false);
+        changeLightsColor(labelsLights[getLastEncryptedLetterLightIndex()], false);
+
     }
 
 
 
 
-    private void writeCharacter(char originalLetter, char encryptedLetter)
+    private void writeCharacterOnGui(char originalLetter, char encryptedLetter)
     {
         textFieldMsgOriginal.setText(textFieldMsgOriginal.getText() + originalLetter);
         textFieldMsgEncrypted.setText(textFieldMsgEncrypted.getText() + encryptedLetter);
@@ -501,14 +483,15 @@ public class Gui extends JFrame implements ChangeListener, ActionListener
 
     }
 
-    public void addTextArea(TextArea textArea) {
-        textAreaVector.add(textArea);
-    }
-
-    private void changeButtonsColor(RoundButton button, Color backgroundColor, Color foregroundColor)
+    private void changeEnigmaButtonsColor(RoundButton button, boolean isPressed)
     {
-       button.setBackground(backgroundColor);
-       button.setForeground(foregroundColor);
+            button.setBackground(isPressed ? COLOR_KEYBOARD_PRESSED_BUTTON : COLOR_KEYBOARD_BACKGROUND);
+
+    }
+    private void changeLightsColor(RoundLabel light, boolean isLightened)
+    {
+        light.setBackground(isLightened ? COLOR_LIGHTS_ON : COLOR_LIGHTS_OFF);
+
     }
 
     private int getLastEncryptedLetterLightIndex()
@@ -516,8 +499,8 @@ public class Gui extends JFrame implements ChangeListener, ActionListener
         return ENIGMA_ALPHABET.indexOf(textFieldMsgEncrypted.getText().charAt(textFieldMsgEncrypted.getText().length() - 1));
     }
 
-
-    public static boolean validateIp(final String ip) {
+    public static boolean validateIp(final String ip)
+    {
         String PATTERN = "^((0|1\\d?\\d?|2[0-4]?\\d?|25[0-5]?|[3-9]\\d?)\\.){3}(0|1\\d?\\d?|2[0-4]?\\d?|25[0-5]?|[3-9]\\d?)$";
 
         return ip.matches(PATTERN);
@@ -532,19 +515,16 @@ public class Gui extends JFrame implements ChangeListener, ActionListener
         RoundButton btn = (RoundButton) e.getSource();
 
         if (btn.getModel().isPressed() && !pressingABtn) {
-            codeLetterPressedBtn = btn.getText().charAt(0);
 
             buttonPressed(btn);
-            changeButtonsColor(btn,KEYBOARD_NON_PRESSED_BUTTON, KEYBOARD_PRESSED_BUTTON);
-            labelsLights[getLastEncryptedLetterLightIndex()].setBackground(LIGHTS_ON);
 
-            pressingABtn = true;
+            updateGraphic();
         }
 
-        if (!btn.getModel().isPressed() && pressingABtn && btn.getText().charAt(0) == codeLetterPressedBtn) {
+        if (!btn.getModel().isPressed() && pressingABtn && btn.getText().charAt(0) == currentlyPressedLetter) {
             buttonReleased(btn);
-            pressingABtn = false;
 
+            updateGraphic();
         }
     }
 
@@ -556,29 +536,30 @@ public class Gui extends JFrame implements ChangeListener, ActionListener
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        JButton button = (JButton) e.getSource();
+        Object source =  e.getSource();
 
 
 
-        if (button.equals(btnReceiver))
+        if (source.equals(btnReceiver))
         {
             // SERVER
 
             // When the button is pressed it should start the server which is refered to the automaticaly assigned IP.
-            if(connectionState == CONNECTION_CLOSED){
+            if(connectionState == STATE_CONNECTION_CLOSED){
                 serverThread = new ServerThread(this);
                 serverThread.start();
                 connectionState = STATE_CONNECTION_BIND;
 
                 textOtherIP.setText("");
+                updateGraphic();
             }
 
 
         }
-        else if (button.equals(btnSender))
+        else if (source.equals(btnSender))
         {
             // CLIENT
-            if(connectionState == CONNECTION_CLOSED){
+            if(connectionState == STATE_CONNECTION_CLOSED){
 
 
                 //check ip
@@ -587,17 +568,11 @@ public class Gui extends JFrame implements ChangeListener, ActionListener
                 {
                     try {
                         otherSocket = new Socket(textOtherIP.getText(), PORT);
-                        connectionState = CONNECTION_OPEN;
+                        connectionState = STATE_CONNECTION_OPEN;
 
-                        btnSender.setEnabled(false);
-                        btnSender.setBackground(BTN_GENERIC_DISABLED);
-                        btnReceiver.setEnabled(false);
-                        btnReceiver.setBackground(BTN_GENERIC_DISABLED);
-                        btnDisconnect.setEnabled(true);
-                        btnDisconnect.setBackground(BTN_DISCONNECT);
-                        textOtherIP.setEnabled(true);
                     } catch (IOException ex) {
                         textOtherIP.setText("");
+                        updateGraphic();
                         JDialog dialogTmp = new JDialog(this, "error");
                         dialogTmp.add(new JLabel("could not connect to the ip"));
                         dialogTmp.setSize(200,80);
@@ -611,6 +586,7 @@ public class Gui extends JFrame implements ChangeListener, ActionListener
 
                 }else{
                     textOtherIP.setText("");
+                    updateGraphic();
                     JDialog dialogTmp = new JDialog(this, "error");
                     dialogTmp.add(new JLabel("invalid ip"));
                     dialogTmp.setSize(120,80);
@@ -623,7 +599,7 @@ public class Gui extends JFrame implements ChangeListener, ActionListener
                 }
             }
         }
-        else if (button.equals(btnDisconnect))
+        else if (source.equals(btnDisconnect))
         {
             /*
             * when it is pressed it should destroy the connection.
@@ -635,28 +611,29 @@ public class Gui extends JFrame implements ChangeListener, ActionListener
                 serverThread.interrupt();
                 try {
                     sSocket.close();
-                } catch (IOException ex) {}
-                connectionState = CONNECTION_CLOSED;
-                btnSender.setEnabled(true);
-                btnSender.setBackground(BTN_SENDER);
-                btnReceiver.setEnabled(true);
-                btnReceiver.setBackground(BTN_RECEIVER);
-                btnDisconnect.setEnabled(false);
-                btnDisconnect.setBackground(BTN_GENERIC_DISABLED);
-                textOtherIP.setEnabled(true);
+                }
+                catch (IOException ex) {}
+                connectionState = STATE_CONNECTION_CLOSED;
                 textOtherIP.setText("");
+                updateGraphic();
             }
-            if (connectionState == CONNECTION_OPEN){
+            else if (connectionState == STATE_CONNECTION_OPEN){
 
-                connectionState = CONNECTION_CLOSED;
-                btnSender.setEnabled(true);
-                btnSender.setBackground(BTN_SENDER);
-                btnReceiver.setEnabled(true);
-                btnReceiver.setBackground(BTN_RECEIVER);
-                btnDisconnect.setEnabled(false);
-                btnDisconnect.setBackground(BTN_GENERIC_DISABLED);
-                textOtherIP.setEnabled(true);
+                connectionState = STATE_CONNECTION_CLOSED;
                 textOtherIP.setText("");
+                updateGraphic();
+            }
+            else if (connectionState == STATE_CONNECTION_CLOSED){
+
+                connectionState = STATE_CONNECTION_NOT_USED;
+                textOtherIP.setText("");
+                updateGraphic();
+            }
+            else if (connectionState == STATE_CONNECTION_NOT_USED){
+
+                connectionState = STATE_CONNECTION_CLOSED;
+                textOtherIP.setText("");
+                updateGraphic();
             }
 
         }
