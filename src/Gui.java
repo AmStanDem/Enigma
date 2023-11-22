@@ -16,7 +16,8 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Vector;
 
-public class Gui extends JFrame implements ChangeListener, ActionListener {
+public class Gui extends JFrame implements ChangeListener, ActionListener
+{
     public static int PORT = 60000;
     public static final String GUI_NAME = "Enigma machine";
 
@@ -33,23 +34,24 @@ public class Gui extends JFrame implements ChangeListener, ActionListener {
     private static final String ACTION_COMMAND_KEYBOARD_BUTTONS = "KEYBOARD_BUTTON";
 
     public static final Dimension SCREEN_SIZE = Toolkit.getDefaultToolkit().getScreenSize();
-    public static final Color KEYBOARD_NON_PRESSED_BUTTON = new Color(110, 110, 110);
-    public static final Color KEYBOARD_PRESSED_BUTTON = new Color(58, 58, 58);
-
-    public static final Color DEFAULT_KEYBOARD_BACKGROUND_COLOR = new Color(192,192,192);
-    public static final Color KEYBOARD_BORDER = new Color(35, 35, 35);
-    public static final Color LIGHTS_OFF = new Color(250, 250, 221);
-    public static final Color LIGHTS_ON = new Color(255, 246, 65);
-    public static final Color LIGHTS_BORDER = new Color(255, 247, 31);
-    public static final Color TEXTES_COLOR = new Color(255, 255, 255);
-    public static final Color IO_PANEL_COLOR = new Color(192, 192, 192);
-    public static final Color MSG_SEND_BUTTON = new Color(18, 243, 8);
-    public static final Color BTN_ENIGMA_CONFIGS = new Color(51, 80, 225);
-    public static final Color BTN_ENIGMA_CONFIGS_MARGIN = new Color(29, 29, 63);
-    public static final Color BTN_RECEIVER = new Color(239, 123, 6);
-    public static final Color BTN_SENDER = new Color(232, 196, 12);
-    public static final Color BTN_DISCONNECT = new Color(238, 8, 49);
-    public static final Color BTN_GENERIC_DISABLED = new Color(108, 105, 105);
+    
+    public static final Color COLOR_KEYBOARD_PRESSED_BUTTON = new Color(120, 120, 120);
+    public static final Color COLOR_KEYBOARD_FOREGROUND = new Color(58, 58, 58);
+    public static final Color COLOR_KEYBOARD_BACKGROUND = new Color(180,180,180);
+    public static final Color COLOR_KEYBOARD_BORDER = new Color(35, 35, 35);
+    public static final Color COLOR_LIGHTS_OFF = new Color(250, 250, 221);
+    public static final Color COLOR_LIGHTS_ON = new Color(255, 246, 65);
+    public static final Color COLOR_LIGHTS_BORDER = new Color(255, 247, 31);
+    public static final Color COLOR_TEXTS = new Color(255, 255, 255);
+    public static final Color COLOR_IO_PANEL_COLOR = new Color(192, 192, 192);
+    public static final Color COLOR_MSG_SEND_BUTTON = new Color(18, 243, 8);
+    public static final Color COLOR_BTN_ENIGMA_CONFIGS = new Color(51, 80, 225);
+    public static final Color COLOR_BTN_ENIGMA_CONFIGS_MARGIN = new Color(29, 29, 63);
+    public static final Color COLOR_BTN_RECEIVER = new Color(239, 123, 6);
+    public static final Color COLOR_BTN_SENDER = new Color(232, 196, 12);
+    public static final Color COLOR_BTN_DISCONNECT = new Color(238, 8, 49);
+    public static final Color COLOR_BTN_SET_CONNECTION = new Color(8, 238, 39);
+    public static final Color COLOR_BTN_GENERIC_DISABLED = new Color(108, 105, 105);
 
     private static final int CONNECTION_CLOSED = 0;
     private static final int CONNECTION_BIND = 1;
@@ -59,7 +61,6 @@ public class Gui extends JFrame implements ChangeListener, ActionListener {
     private boolean pressingABtn;
 
     private int codeLetterPressedBtn;
-
 
     private int connectionState;
     private ServerThread serverThread;
@@ -159,7 +160,7 @@ public class Gui extends JFrame implements ChangeListener, ActionListener {
                 {
                     //System.out.println("keyPressed");
 
-                    int buttonIndex =  ENIGMA_ALPHABET.indexOf(keyChar);
+                    int buttonIndex = ENIGMA_ALPHABET.indexOf(keyChar);
 
                     codeLetterPressedBtn = keyChar;
 
@@ -457,10 +458,8 @@ public class Gui extends JFrame implements ChangeListener, ActionListener {
 
     private void buttonPressed(RoundButton button)
     {
-        char originalLetter = button.getText().charAt(0);
-        plainText = plainText + originalLetter;
-
-
+        currentlyPressedLetter = button.getText().charAt(0);
+        plainText = plainText + currentlyPressedLetter;
 
         char encryptedLetter = enigma.pushKey(originalLetter);
 
@@ -468,10 +467,6 @@ public class Gui extends JFrame implements ChangeListener, ActionListener {
         encryptedText = encryptedText + encryptedLetter;
 
         writeCharacter(originalLetter, encryptedLetter);
-
-        updateGraphic();
-
-
 
     }
 
@@ -573,14 +568,8 @@ public class Gui extends JFrame implements ChangeListener, ActionListener {
             if(connectionState == CONNECTION_CLOSED){
                 serverThread = new ServerThread(this);
                 serverThread.start();
-                connectionState = CONNECTION_BIND;
-                btnSender.setEnabled(false);
-                btnSender.setBackground(BTN_GENERIC_DISABLED);
-                btnReceiver.setEnabled(false);
-                btnReceiver.setBackground(BTN_GENERIC_DISABLED);
-                btnDisconnect.setEnabled(true);
-                btnDisconnect.setBackground(BTN_DISCONNECT);
-                textOtherIP.setEnabled(false);
+                connectionState = STATE_CONNECTION_BIND;
+
                 textOtherIP.setText("");
             }
 
@@ -641,7 +630,7 @@ public class Gui extends JFrame implements ChangeListener, ActionListener {
             *
             * */
 
-            if (connectionState == CONNECTION_BIND){
+            if (connectionState == STATE_CONNECTION_BIND){
                 //System.out.println("CIAOOOOO");
                 serverThread.interrupt();
                 try {
