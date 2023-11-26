@@ -14,7 +14,6 @@ import java.net.Inet4Address;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.Vector;
 
 public class Gui extends JFrame implements ChangeListener, ActionListener
 {
@@ -65,33 +64,37 @@ public class Gui extends JFrame implements ChangeListener, ActionListener
     public PrintWriter output;
 
 
-    private JPanel jPanelChat;
-    private JPanel jPanelButtonskeyBoard;
-    private JPanel jPanelButtonsLights;
-    private Vector<TextArea> textAreaVector;
-    private JTextArea textArea;
-    private JScrollPane jScrollPane;
-    private RollersSelectionDialog rollersSelectionWindow;
+    private final JPanel jPanelChat;
+    private final JPanel jPanelButtonskeyBoard;
+    private final JPanel jPanelButtonsLights;
+    private final JTextArea textArea;
+    private final JScrollPane jScrollPane;
     private Container c;
-    private RoundButton[] btnsKeyboard;
-    private RoundLabel[] labelsLights;
+    private final RoundButton[] btnsKeyboard;
+    private final RoundButton[] btnsSpecial;
 
-    private JPanel panelIO;
-    private JPanel panelConnection;
-    private JPanel[] pnlRollers;
-    private JTextArea[] textRollers;
+    private final RoundLabel[] labelsLights;
 
-    private JButton btnSendMessage;
-    private RoundButton btnSetRollers, btnSetPlugBoard;
+    private final JPanel panelIO;
+    private final JPanel panelConnection;
+    private final JPanel[] pnlRollers;
+    private final JTextField[] textRollers;
 
-    private JTextArea textFieldMsgEncrypted, textFieldMsgOriginal;
+    private final JButton btnSendMessage;
+    private final RoundButton btnSetRollers;
+    private final RoundButton btnSetPlugBoard;
 
-    private JTextField textMyIP, textOtherIP;
+    private final JTextArea textFieldMsgEncrypted;
+    private final JTextArea textFieldMsgOriginal;
+
+    private final JTextField textMyIP;
+    private final JTextField textOtherIP;
     private boolean havingIp;
 
     private JLabel labelConnectionStatus;
-    private RoundButton btnReceiver, btnSender;
-    private JButton btnDisconnect;
+    private final RoundButton btnReceiver;
+    private final RoundButton btnSender;
+    private final JButton btnDisconnect;
 
     Enigma enigma;
     String plainText, encryptedText;
@@ -608,7 +611,10 @@ public class Gui extends JFrame implements ChangeListener, ActionListener
                 try {
                     sSocket.close();
                 }
-                catch (IOException ex) {}
+                catch (IOException ex)
+                {
+                    ; //TMCH
+                }
                 connectionState = STATE_CONNECTION_CLOSED;
                 textOtherIP.setText("");
                 updateGraphic();
@@ -632,8 +638,13 @@ public class Gui extends JFrame implements ChangeListener, ActionListener
                 updateGraphic();
             }
 
-        } else if (source.equals(btnSetPlugBoard)){
+        } else if (source.equals(btnSetPlugBoard))
+        {
             new PlugBoardJDialog(this);
+        }
+        else if (source.equals(btnSetRollers))
+        {
+            new RollersSelectionDialog(this);
         }
     }
 }

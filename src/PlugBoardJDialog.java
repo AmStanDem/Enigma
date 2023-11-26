@@ -88,7 +88,8 @@ public class PlugBoardJDialog extends JDialog implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         JButton pressedButton =(JButton) e.getSource();
 
-        if(selectedButton == null){
+        if(selectedButton == null)
+        {
             selectedButton = pressedButton;
         }else{
             enigma.modifyPlugBoard(selectedButton.getText().charAt(0),pressedButton.getText().charAt(0));
