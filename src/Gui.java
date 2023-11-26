@@ -22,8 +22,8 @@ public class Gui extends JFrame implements ChangeListener, ActionListener
     public static final String GUI_NAME = "Enigma machine";
     private static final File FRAME_IMAGE_ICON = new File("assets/images/Enigma_Icon.png");
 
-    private static final String ENIGMA_ALPHABET = "QWERTZUIOASDFGHJKPYXCVBNML";
-    private static final int ALPHABET_LENGTH = ENIGMA_ALPHABET.length();
+    public static final String ENIGMA_ALPHABET = "QWERTZUIOASDFGHJKPYXCVBNML";
+    public static final int ALPHABET_LENGTH = ENIGMA_ALPHABET.length();
 
     private static final int KEYBOARD_BUTTONS_SIZE = 45;
     private static final int KEYBOARD_BUTTONS_HORIZONTAL_SPACE = 12;
@@ -505,7 +505,21 @@ public class Gui extends JFrame implements ChangeListener, ActionListener
 
         return ip.matches(PATTERN);
     }
+    protected void showErrorJDialog(String msg){
+        showErrorJDialog(msg,200,80);
+    }
+    protected void showErrorJDialog(String msg, int width, int height){
+        JDialog dialogTmp = new JDialog(this, "error");
+        dialogTmp.add(new JLabel(msg));
+        dialogTmp.setSize(width,height);
+        dialogTmp.setLocation((this.getWidth() - width)/2, (this.getHeight() - height)/2);
+        dialogTmp.setResizable(false);
+        dialogTmp.setAlwaysOnTop(true);
+        dialogTmp.setModalityType(Dialog.ModalityType.APPLICATION_MODAL);
+        dialogTmp.setAutoRequestFocus(true);
+        dialogTmp.setVisible(true);
 
+    }
 
 
     @Override
@@ -527,8 +541,6 @@ public class Gui extends JFrame implements ChangeListener, ActionListener
             updateGraphic();
         }
     }
-
-
 
 
     /*
@@ -573,29 +585,13 @@ public class Gui extends JFrame implements ChangeListener, ActionListener
                     } catch (IOException ex) {
                         textOtherIP.setText("");
                         updateGraphic();
-                        JDialog dialogTmp = new JDialog(this, "error");
-                        dialogTmp.add(new JLabel("could not connect to the ip"));
-                        dialogTmp.setSize(200,80);
-                        dialogTmp.setLocation((this.getWidth() - 200)/2, (this.getHeight() - 80)/2);
-                        dialogTmp.setResizable(false);
-                        dialogTmp.setAlwaysOnTop(true);
-                        dialogTmp.setModalityType(Dialog.ModalityType.APPLICATION_MODAL);
-                        dialogTmp.setAutoRequestFocus(true);
-                        dialogTmp.setVisible(true);
+                        showErrorJDialog("could not connect to the ip");
                     }
 
                 }else{
                     textOtherIP.setText("");
+                    showErrorJDialog("invalid ip");
                     updateGraphic();
-                    JDialog dialogTmp = new JDialog(this, "error");
-                    dialogTmp.add(new JLabel("invalid ip"));
-                    dialogTmp.setSize(120,80);
-                    dialogTmp.setLocation((this.getWidth() - 120)/2, (this.getHeight() - 80)/2);
-                    dialogTmp.setResizable(false);
-                    dialogTmp.setAlwaysOnTop(true);
-                    dialogTmp.setModalityType(Dialog.ModalityType.APPLICATION_MODAL);
-                    dialogTmp.setAutoRequestFocus(true);
-                    dialogTmp.setVisible(true);
                 }
             }
         }
@@ -636,6 +632,8 @@ public class Gui extends JFrame implements ChangeListener, ActionListener
                 updateGraphic();
             }
 
+        } else if (source.equals(btnSetPlugBoard)){
+            new PlugBoardJDialog(this);
         }
     }
 }

@@ -5,13 +5,13 @@ public class Enigma {
     private Roller[] availableRollers;
     private Roller[] selectedRollers;
     private Commutator commutator;
-    private int [] cabledSwitches;
+    private int [] plugBoard;
 
     
     public Enigma() {
-        cabledSwitches = new int[ALPHABET_LENGTH];
-        for(int i = 0 ; i < cabledSwitches.length; i++){
-            cabledSwitches[i] = 0;
+        plugBoard = new int[ALPHABET_LENGTH];
+        for(int i = 0; i < plugBoard.length; i++){
+            plugBoard[i] = 0;
         }
         /*
         cabledSwitches[2] = 1;
@@ -67,6 +67,25 @@ public class Enigma {
         return commutator;
 
     }
+    public int[] getPlugBoard(){
+        return plugBoard;
+
+    }
+    public int getAvailablePlugBoardCode(){
+        boolean available;
+        for(int i = 1; i < plugBoard.length; i++){//check all colors
+            available = true;
+            for(int j = 0; j < plugBoard.length && available; j++){//check the plugBoard
+                if(plugBoard[j] == i){
+                    available = false;
+                }
+            }
+            if(available){
+                return i;
+            }
+        }
+        return 0;
+    }
 
     public void setSelectedRollers(Roller[] rollers){
         for(int i = 0 ; i < NUM_SELECTABLE_ROLLERS; i++){
@@ -78,11 +97,15 @@ public class Enigma {
             selectedRollers[i] = availableRollers[rollersIndex[i]];
         }
     }
+    public void setPlugBoard(int[] plugBoard){
+        this.plugBoard = plugBoard;
+
+    }
 
 
     public void setDefaultConfiguration(){
-        for(int i = 0 ; i < cabledSwitches.length; i++){
-            cabledSwitches[i] = 0;
+        for(int i = 0; i < plugBoard.length; i++){
+            plugBoard[i] = 0;
         }
 
         for(int i = 0 ; i < NUM_SELECTABLE_ROLLERS; i++){
@@ -93,11 +116,11 @@ public class Enigma {
 
     }
     private char crossCabledSwitches(char c){
-        int code = cabledSwitches[c - 'A'];
+        int code = plugBoard[c - 'A'];
 
         if(code != 0){
             for(int i = 0; i < ALPHABET_LENGTH; i++){
-                if(cabledSwitches[i] == code && i != (c - 'A')){
+                if(plugBoard[i] == code && i != (c - 'A')){
                     return (char) (i + 'A');
                 }
             }
@@ -148,6 +171,62 @@ public class Enigma {
         }
 
         return result;
+    }
+    public char findPlugBoardPair(Character letter){
+        int letterColor = plugBoard[letter - 'A'];
+        if(letterColor == 0){
+            return letter;
+        }
+
+        for(int i = 0; i < plugBoard.length; i++){
+            if(plugBoard[i] == letterColor && i != (letter - 'A')){
+                return (char)(i +'A');
+            }
+
+        }
+        return letter;
+    }
+    public void modifyPlugBoard(char letter, char switchedLetter){
+        letter = Character.toUpperCase(letter);
+        switchedLetter = Character.toUpperCase(switchedLetter);
+
+        if(letter >= 'A' && letter <= 'Z' && switchedLetter >= 'A' && switchedLetter <= 'Z'){
+            int letterColor = plugBoard[letter - 'A'];
+            int switchedLetterColor = plugBoard[switchedLetter - 'A'];
+
+            if(letter == switchedLetter){//delete the connections
+                int foundConnection = 0;
+                for(int i = 0; i < plugBoard.length && foundConnection < 2; i++){
+                    if(plugBoard[i] == letterColor){
+                        foundConnection++;
+                        plugBoard[i] = 0;
+                    }
+                }
+            }else{//change the connections
+                char letterPair = findPlugBoardPair(letter);
+                char switchedLetterPair = findPlugBoardPair(switchedLetter);
+
+                if(letterColor == 0 && switchedLetterColor == 0){
+                    letterColor = getAvailablePlugBoardCode();
+                    plugBoard[letter - 'A'] = letterColor;
+                    plugBoard[switchedLetter - 'A'] = letterColor;
+                }else if(letterColor != 0 && switchedLetterColor != 0) {
+                    plugBoard[letter - 'A'] = switchedLetterColor;
+                    plugBoard[switchedLetter - 'A'] = letterColor;
+
+                }else{
+                    if(letterColor == 0){
+                        plugBoard[letter - 'A'] = plugBoard[switchedLetterPair - 'A'];
+                        plugBoard[switchedLetter - 'A'] = 0;
+                    }else{
+                        plugBoard[letter - 'A'] = 0;
+                        plugBoard[switchedLetter - 'A'] = plugBoard[letterPair - 'A'];
+                    }
+                }
+
+            }
+        }
+
     }
 
 
