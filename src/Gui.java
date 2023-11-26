@@ -22,18 +22,22 @@ public class Gui extends JFrame implements ChangeListener, ActionListener
     private static final File FRAME_IMAGE_ICON = new File("assets/images/Enigma_Icon.png");
 
     public static final String ENIGMA_ALPHABET = "QWERTZUIOASDFGHJKPYXCVBNML";
-    public static final int ALPHABET_LENGTH = ENIGMA_ALPHABET.length();
+    public static final String SPECIAL_ALPHABET = "_,.;?!";
+    public static final int ENIGMA_ALPHABET_LENGTH = ENIGMA_ALPHABET.length();
+    public static final int SPECIAL_ALPHABET_LENGTH = SPECIAL_ALPHABET.length();
 
     private static final int KEYBOARD_BUTTONS_SIZE = 45;
     private static final int KEYBOARD_BUTTONS_HORIZONTAL_SPACE = 12;
     private static final int KEYBOARD_BUTTONS_VERTICAL_SPACE = 18;
 
     public static final Dimension SCREEN_SIZE = Toolkit.getDefaultToolkit().getScreenSize();
-    
+
     public static final Color COLOR_KEYBOARD_PRESSED_BUTTON = new Color(120, 120, 120);
     public static final Color COLOR_KEYBOARD_FOREGROUND = new Color(58, 58, 58);
+    public static final Color COLOR_SPECIAL_KEYBOARD_FOREGROUND = new Color(29, 84, 75);
     public static final Color COLOR_KEYBOARD_BACKGROUND = new Color(180,180,180);
     public static final Color COLOR_KEYBOARD_BORDER = new Color(35, 35, 35);
+    public static final Color COLOR_SPECIAL_KEYBOARD_BORDER = new Color(48, 67, 140);
     public static final Color COLOR_LIGHTS_OFF = new Color(250, 250, 221);
     public static final Color COLOR_LIGHTS_ON = new Color(255, 246, 65);
     public static final Color COLOR_LIGHTS_BORDER = new Color(255, 247, 31);
@@ -97,7 +101,6 @@ public class Gui extends JFrame implements ChangeListener, ActionListener
     private final JButton btnDisconnect;
 
     Enigma enigma;
-    String plainText, encryptedText;
 
 
     //selezione rolli tramite jdialog
@@ -111,9 +114,6 @@ public class Gui extends JFrame implements ChangeListener, ActionListener
         }
 
         enigma = new Enigma();
-
-        plainText = "";
-        encryptedText = "";
 
         pressingABtn = false;
 
@@ -137,15 +137,23 @@ public class Gui extends JFrame implements ChangeListener, ActionListener
 
             @Override
             public void keyPressed(KeyEvent e) {
-                int keyChar = Character.toUpperCase(e.getKeyChar());
+                char keyChar = Character.toUpperCase(e.getKeyChar());
+                keyChar = keyChar == ' ' ? '_' : keyChar;//traduce the space key
+                RoundButton pressedBtn;
 
-                if (!pressingABtn && keyChar >= 'A' && keyChar <= 'Z')
+                if (!pressingABtn)
                 {
+                    if(ENIGMA_ALPHABET.contains(String.valueOf(keyChar))){
+                        pressedBtn = btnsKeyboard[ENIGMA_ALPHABET.indexOf(keyChar)];
+                        buttonPressed(pressedBtn);
+                    }
+                    if(SPECIAL_ALPHABET.contains(String.valueOf(keyChar))){
+                        pressedBtn = btnsSpecial[SPECIAL_ALPHABET.indexOf(keyChar)];
+                        buttonPressed(pressedBtn);
+                    }
                     //System.out.println("keyPressed");
 
-                    int buttonIndex = ENIGMA_ALPHABET.indexOf(keyChar);
 
-                    buttonPressed(btnsKeyboard[buttonIndex]);
 
                     updateGraphic();
                 }
@@ -156,12 +164,18 @@ public class Gui extends JFrame implements ChangeListener, ActionListener
             @Override
             public void keyReleased(KeyEvent e)
             {
-                int keyChar = Character.toUpperCase(e.getKeyChar());
+                char keyChar = Character.toUpperCase(e.getKeyChar());
+                keyChar = keyChar == ' ' ? '_' : keyChar;//traduce the space key
 
                 //System.out.println("keyReleased");
                 if (keyChar == currentlyPressedLetter)
                 {
-                    buttonReleased(btnsKeyboard[ENIGMA_ALPHABET.indexOf(keyChar)]);
+                    if(ENIGMA_ALPHABET.contains(String.valueOf(keyChar))){
+                        buttonReleased(btnsKeyboard[ENIGMA_ALPHABET.indexOf(keyChar)]);
+                    }
+                    if(SPECIAL_ALPHABET.contains(String.valueOf(keyChar))){
+                        buttonReleased(btnsSpecial[SPECIAL_ALPHABET.indexOf(keyChar)]);
+                    }
 
                     updateGraphic();
 
@@ -195,14 +209,13 @@ public class Gui extends JFrame implements ChangeListener, ActionListener
 
 
 
-        // TODO: add the space button to the buttonKeys array.
-
         jPanelButtonskeyBoard = new JPanel();
         jPanelButtonskeyBoard.setBounds(800, 550, 720, 200);
         jPanelButtonskeyBoard.setLayout(null);
 
-        btnsKeyboard = new RoundButton[ALPHABET_LENGTH];
-        labelsLights = new RoundLabel[ALPHABET_LENGTH];
+        btnsKeyboard = new RoundButton[ENIGMA_ALPHABET_LENGTH];
+        labelsLights = new RoundLabel[ENIGMA_ALPHABET_LENGTH];
+        btnsSpecial = new RoundButton[SPECIAL_ALPHABET_LENGTH];
 
 
         int startX = (jPanelButtonskeyBoard.getWidth() / 2) -
@@ -253,20 +266,39 @@ public class Gui extends JFrame implements ChangeListener, ActionListener
 
         }
 
+        int buttonXColumn = 3;
+        for (int i = 0; i < btnsSpecial.length; i++)
+        {
+            btnsSpecial[i] = new RoundButton(String.valueOf(SPECIAL_ALPHABET.charAt(i)));
+            btnsSpecial[i].setFocusable(false);
+            btnsSpecial[i].serBorderColor(COLOR_SPECIAL_KEYBOARD_BORDER);
+            btnsSpecial[i].addChangeListener(this);
+            btnsSpecial[i].setSize(KEYBOARD_BUTTONS_SIZE, KEYBOARD_BUTTONS_SIZE);
+            btnsSpecial[i].setBackground(COLOR_KEYBOARD_BACKGROUND);
+            btnsSpecial[i].setForeground(COLOR_SPECIAL_KEYBOARD_FOREGROUND);
+
+
+            btnsSpecial[i].setLocation(5 + i/buttonXColumn*(KEYBOARD_BUTTONS_SIZE + 5), 20 + (i%buttonXColumn) * (KEYBOARD_BUTTONS_SIZE + KEYBOARD_BUTTONS_VERTICAL_SPACE));
+
+
+            jPanelButtonskeyBoard.add(btnsSpecial[i]);
+        }
+
+
         c.add(jPanelButtonskeyBoard);
         c.add(jPanelButtonsLights);
 
 
 
         pnlRollers = new JPanel[enigma.getSelectedRollers().length];
-        textRollers = new JTextArea[enigma.getSelectedRollers().length];
+        textRollers = new JTextField[enigma.getSelectedRollers().length];
         int pnlRollerWidth = 20;
         int pnlRollerHeight = 40;
         int pnlRollerSpace = 10;
         int pnlRollerStartX = jPanelButtonsLights.getWidth()/2 - pnlRollerSpace*(pnlRollers.length-1)/2 - pnlRollerWidth*(pnlRollers.length)/2;
         int pnlRollerStartY = 10;
 
-        int textRollerWidth = pnlRollerWidth - 10;
+        int textRollerWidth = pnlRollerWidth - 6;
         int textRollerHeight = pnlRollerHeight - 25;
         int textRollerOffsetX = (pnlRollerWidth - textRollerWidth)/2;
         int textRollerOffsetY = (pnlRollerHeight - textRollerHeight)/2;
@@ -278,13 +310,13 @@ public class Gui extends JFrame implements ChangeListener, ActionListener
             jPanelButtonsLights.add(pnlRollers[i]);
 
             //TODO allain the text
-            textRollers[i] = new JTextArea(String.valueOf(enigma.getSelectedRollers()[pnlRollers.length - i - 1].getDisplayedLetter()));
+            textRollers[i] = new JTextField(String.valueOf(enigma.getSelectedRollers()[pnlRollers.length - i - 1].getDisplayedLetter()));
             textRollers[i].setBackground(Color.WHITE);
             textRollers[i].setEnabled(false);
             textRollers[i].setDisabledTextColor(Color.black);
             textRollers[i].setBounds(textRollerOffsetX,textRollerOffsetY,textRollerWidth,textRollerHeight);
-            textRollers[i].setAlignmentY(Component.CENTER_ALIGNMENT);
-            textRollers[i].setAlignmentX(Component.CENTER_ALIGNMENT);
+            textRollers[i].setHorizontalAlignment(JTextField.CENTER);
+
             pnlRollers[i].add(textRollers[i]);
 
         }
@@ -328,8 +360,6 @@ public class Gui extends JFrame implements ChangeListener, ActionListener
         panelIO.add(btnSendMessage);
 
         c.add(panelIO);
-
-        rollersSelectionWindow = new RollersSelectionDialog(this);
 
         btnSetRollers = new RoundButton("rollers");
         btnSetRollers.setFocusable(false);
@@ -410,6 +440,9 @@ public class Gui extends JFrame implements ChangeListener, ActionListener
         this.setVisible(true);
 
         updateGraphic();
+
+        new RollersSelectionDialog(this);//debug
+
     }
 
     public void updateGraphic() {
@@ -439,18 +472,23 @@ public class Gui extends JFrame implements ChangeListener, ActionListener
 
     private void buttonPressed(RoundButton button)
     {
-        currentlyPressedLetter = button.getText().charAt(0);
-        plainText = plainText + currentlyPressedLetter;
-
-        char encryptedLetter = enigma.pushKey(currentlyPressedLetter);
-        encryptedText = encryptedText + encryptedLetter;
-
-        writeCharacterOnGui(currentlyPressedLetter, encryptedLetter);
-
         pressingABtn = true;
+        currentlyPressedLetter = button.getText().charAt(0);
+        char encryptedLetter = '?';
 
+        if(ENIGMA_ALPHABET.contains(button.getText()))
+        {
+            encryptedLetter = enigma.pushKey(currentlyPressedLetter);
+
+            writeCharacterOnGui(currentlyPressedLetter, encryptedLetter);
+            changeLightsColor(labelsLights[getLastEncryptedLetterLightIndex()], true);
+        }
+        else if(SPECIAL_ALPHABET.contains(button.getText()))
+        {
+            encryptedLetter = currentlyPressedLetter;
+            writeCharacterOnGui(currentlyPressedLetter, encryptedLetter);
+        }
         changeEnigmaButtonsColor(button, true);
-        changeLightsColor(labelsLights[getLastEncryptedLetterLightIndex()], true);
 
     }
 
@@ -460,7 +498,10 @@ public class Gui extends JFrame implements ChangeListener, ActionListener
         pressingABtn = false;
 
         changeEnigmaButtonsColor(button, false);
-        changeLightsColor(labelsLights[getLastEncryptedLetterLightIndex()], false);
+
+        if(ENIGMA_ALPHABET.contains(button.getText())) {
+            changeLightsColor(labelsLights[getLastEncryptedLetterLightIndex()], false);
+        }
 
     }
 
@@ -532,7 +573,6 @@ public class Gui extends JFrame implements ChangeListener, ActionListener
         RoundButton btn = (RoundButton) e.getSource();
 
         if (btn.getModel().isPressed() && !pressingABtn) {
-
             buttonPressed(btn);
 
             updateGraphic();
@@ -552,8 +592,6 @@ public class Gui extends JFrame implements ChangeListener, ActionListener
     public void actionPerformed(ActionEvent e)
     {
         Object source =  e.getSource();
-
-
 
         if (source.equals(btnReceiver))
         {

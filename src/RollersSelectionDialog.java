@@ -5,12 +5,35 @@ import java.awt.event.ActionListener;
 
 public class RollersSelectionDialog extends JDialog implements ActionListener
 {
-    public static String DIALOG_NAME = "rollers selection";
+    public static final int DIALOG_WIDTH = 700, DIALOG_HEIGHT = 400;
 
-    Container c;
+    private static final int BUTTON_SIZE = 100;
+
+    private static final int JTEXTFIELD_SIZE_WIDTH = 80;
+
+    private static final int JTEXTFIELD_SIZE_HEIGHT = 15;
+
+    private static final int BTN_INCREASE_DECREASE_SIZE = 45;
 
 
-    RollersSelectionDialog(JFrame frame)
+    public static String DIALOG_NAME = "rollers configuration";
+
+
+    private Container c;
+    private Enigma enigma;
+    private Gui owner;
+
+    private JButton[] btnsRollers;
+
+
+    private JTextField txtFieldOffset, txtFieldadvancementOffset;
+
+    private JButton btnIncreaseOffset, btnDecreaseOffSet, btnIncreaseAdvancementOffset, btnDecreaseAdvancementOffSet;
+
+    private JPanel panel;
+
+
+    public RollersSelectionDialog(Gui owner)
     {
         super(owner, DIALOG_NAME);
         setSize(DIALOG_WIDTH, DIALOG_HEIGHT);

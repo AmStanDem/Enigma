@@ -7,7 +7,7 @@ public class PlugBoardJDialog extends JDialog implements ActionListener {
 
     public static final int DIALOG_WIDTH = 700, DIALOG_EIGHT = 260;
     public static final int BTN_WIDTH = 60, BTN_HEIGHT = 40, BTNS_HORIZONTAL_SPACE = 15, BTNS_VERTICAL_SPACE = 20;
-    public static final Color COLORS_BTNS[] = {new Color(222, 231, 231),
+    public static final Color[] COLORS_BTNS = {new Color(222, 231, 231),
             Color.red, Color.blue, Color.yellow, Color.cyan, Color.pink, Color.magenta, Color.green, Color.orange,
             new Color(30, 112, 48), new Color(113, 21, 131), new Color(23, 32, 141),
             new Color(17, 103, 114), new Color(145, 15, 33), new Color(112, 82, 14)
@@ -31,7 +31,6 @@ public class PlugBoardJDialog extends JDialog implements ActionListener {
 
         createComponents();
 
-
         setResizable(false);
         setAlwaysOnTop(true);
         setModalityType(Dialog.ModalityType.APPLICATION_MODAL);
@@ -41,10 +40,11 @@ public class PlugBoardJDialog extends JDialog implements ActionListener {
     }
 
     private void createComponents(){
-        btns = new JButton[Gui.ALPHABET_LENGTH];
+        btns = new JButton[Gui.ENIGMA_ALPHABET_LENGTH];
 
-        //TODO: why are they not centered ?????
-        int startX = ((DIALOG_WIDTH) - (9 * BTN_WIDTH + 8 * BTNS_HORIZONTAL_SPACE)) / 2;
+        //-7 because yeas e guess
+        int startX = ((DIALOG_WIDTH) - (9 * BTN_WIDTH + 8 * BTNS_HORIZONTAL_SPACE)) / 2 - 7;
+
         int keyboardStartY = 30;
 
         for (int i = 0; i < btns.length; i++)
